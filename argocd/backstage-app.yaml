@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: backstage
-  namespace: argocd
+  namespace: backstage-manual
 spec:
   project: default
   source:
@@ -11,7 +11,7 @@ spec:
     path: Manifest
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: backstage
+  namespace: backstage-manual
   syncPolicy:
     automated:
       prune: true
