@@ -1,0 +1,20 @@
+# Backstage production config
+backend:
+  auth:
+    keys:
+      - secret: ${BACKEND_AUTH_KEYS_0_SECRET}
+
+# Puedes agregar más configuración aquí según tus plugins y necesidades
+# Ejemplo de base de datos:
+database:
+  client: pg
+  connection:
+    host: ${POSTGRES_HOST}
+    port: ${POSTGRES_PORT}
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    database: ${POSTGRES_DB}
+
+# Ejemplo de server
+server:
+  port: 7007
