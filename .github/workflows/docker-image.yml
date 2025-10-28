@@ -51,6 +51,7 @@ jobs:
           context: .
           file: ./Docker/Dockerfile
           push: true
+          platforms: linux/amd64
           tags: |
             jaimehenao8126/backstage-custom:latest
             jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}

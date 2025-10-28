@@ -22,4 +22,4 @@ COPY IDP/app-config.production.yaml /app/app-config.production.yaml
 EXPOSE 7007
 
 # Comando de inicio
-CMD ["node", "packages/backend", "--config", "app-config.production.yaml"]
+CMD ["node", "packages/backend/dist/index.cjs.js", "--config", "app-config.production.yaml"]
