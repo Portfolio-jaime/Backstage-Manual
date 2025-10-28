@@ -38,3 +38,17 @@ jobs:
           tags: |
             jaimehenao8126/backstage-custom:latest
             jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}
+
+      - name: Update Backstage manifest with new image tag
+        run: |
+          sed -i "s|image: jaimehenao8126/backstage-custom:.*|image: jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}|" Manifest/deploy-backstage.yaml
+
+      - name: Commit and push manifest update
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.email "github-actions@users.noreply.github.com"
+          git config --global user.name "github-actions"
+          git add Manifest/deploy-backstage.yaml
+          git commit -m "Update Backstage image tag to ${{ steps.vars.outputs.commit_hash }}"
+          git push
