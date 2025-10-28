@@ -51,11 +51,16 @@ jobs:
           context: ./IDP
           file: ./IDP/Dockerfile
           push: true
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           tags: |
             jaimehenao8126/backstage-custom:latest
             jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}
 
+      - name: Clean failed pods and ReplicaSets after rollout
+        if: failure()
+        run: |
+          kubectl delete pod -n backstage-manual --field-selector=status.phase=Failed
+          kubectl delete rs -n backstage-manual --field-selector=status.replicas=0
       - name: Output build information
         run: |
           echo "✅ Docker image built and pushed successfully!"
