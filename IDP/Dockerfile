@@ -7,14 +7,14 @@
 # 3. prod-deps -> instala SÓLO dependencias de producción del backend
 # 4. runtime   -> imagen final mínima con dist + assets + deps backend
 
-ARG NODE_VERSION=20-alpine
+ARG NODE_VERSION=20-slim
 
 ###############################
 # 1. Dependencias (cache)
 ###############################
 FROM node:${NODE_VERSION} AS deps
 WORKDIR /app
-RUN apk add --no-cache python3 make g++ git
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ git ca-certificates curl && rm -rf /var/lib/apt/lists/*
 COPY package.json yarn.lock .yarnrc.yml .yarn/ ./
 COPY packages/backend/package.json packages/backend/package.json
 COPY packages/app/package.json packages/app/package.json
@@ -32,13 +32,7 @@ RUN --mount=type=cache,target=/app/.yarn/cache \
 FROM deps AS builder
 WORKDIR /app
 COPY . .
-# Al copiar el código fuente se sobrescribe potencialmente .yarn (pierde install-state.gz).
-# Volvemos a generar el estado de instalación sin alterar lockfile.
-RUN --mount=type=cache,target=/app/.yarn/cache \
-    --mount=type=cache,target=/root/.cache \
-    --mount=type=cache,target=/app/node_modules \
-    yarn install --immutable --inline-builds
-# Build completo (frontend + backend)
+# Build completo (frontend + backend) usando estado de instalación existente
 RUN yarn build:all || yarn build
 
 ###############################
@@ -46,7 +40,7 @@ RUN yarn build:all || yarn build
 ###############################
 FROM node:${NODE_VERSION} AS prod-deps
 WORKDIR /app
-RUN apk add --no-cache python3 make g++ git
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ git ca-certificates curl && rm -rf /var/lib/apt/lists/*
 # Copiamos artefactos de Yarn del stage anterior para asegurar yarnPath existente
 COPY --from=deps /app/.yarn /app/.yarn
 COPY --from=deps /app/.yarnrc.yml /app/.yarnrc.yml
@@ -65,7 +59,7 @@ RUN --mount=type=cache,target=/app/.yarn/cache \
 ###############################
 FROM node:${NODE_VERSION} AS runtime
 WORKDIR /app
-RUN apk add --no-cache dumb-init curl
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init curl ca-certificates && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 ENV APP_DIST_DIR=/app/packages/app/dist
 # Copiamos solo lo necesario
@@ -84,4 +78,4 @@ ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "packages/backend/dist/index.cjs.js"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
-	CMD wget -qO- http://127.0.0.1:7007/health || wget -qO- http://127.0.0.1:7007/healthcheck || exit 1
+    CMD curl -fsS http://127.0.0.1:7007/health || curl -fsS http://127.0.0.1:7007/healthcheck || exit 1

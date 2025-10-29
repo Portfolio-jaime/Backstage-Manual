@@ -1,6 +1,8 @@
 .git
-.yarn/cache
-.yarn/install-state.gz
+# Ignoramos toda la carpeta .yarn para NO sobrescribir el estado generado en la etapa deps.
+# Esto evita que la copia del contexto elimine install-state.gz y cause el error
+# "Couldn't find the node_modules state file" durante yarn build.
+.yarn
 node_modules
 # Mantener node_modules fuera del contexto para reducir tamaño inicial
 packages/*/node_modules
