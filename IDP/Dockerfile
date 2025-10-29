@@ -15,7 +15,8 @@ ARG NODE_VERSION=20-slim
 FROM node:${NODE_VERSION} AS deps
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ git ca-certificates curl && rm -rf /var/lib/apt/lists/*
-COPY package.json yarn.lock .yarnrc.yml .yarn/ ./
+# Copiamos manifestos de dependencias; la carpeta .yarn será creada por Yarn en este contenedor
+COPY package.json yarn.lock .yarnrc.yml ./
 COPY packages/backend/package.json packages/backend/package.json
 COPY packages/app/package.json packages/app/package.json
 RUN corepack enable && corepack prepare yarn@4.4.1 --activate && \
@@ -42,6 +43,7 @@ FROM node:${NODE_VERSION} AS prod-deps
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ git ca-certificates curl && rm -rf /var/lib/apt/lists/*
 # Copiamos artefactos de Yarn del stage anterior para asegurar yarnPath existente
+# Copiamos estado de instalación (directorio .yarn) y configuración para garantizar reproducibilidad
 COPY --from=deps /app/.yarn /app/.yarn
 COPY --from=deps /app/.yarnrc.yml /app/.yarnrc.yml
 COPY package.json yarn.lock ./
