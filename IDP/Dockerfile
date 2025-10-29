@@ -15,4 +15,4 @@ COPY app-config.production.yaml /app/app-config.production.yaml
 
 EXPOSE 7007
 
-CMD ["yarn", "start:prod"]
+CMD ["yarn", "workspace", "backend", "start"]
