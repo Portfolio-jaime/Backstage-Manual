@@ -24,7 +24,6 @@ RUN corepack enable && corepack prepare yarn@4.4.1 --activate && \
 # Instalación inmutable para asegurar reproducibilidad (cache mounts deben ir antes del comando)
 RUN --mount=type=cache,target=/app/.yarn/cache \
     --mount=type=cache,target=/root/.cache \
-    --mount=type=cache,target=/app/node_modules \
     yarn install --immutable
 
 ###############################
@@ -32,7 +31,10 @@ RUN --mount=type=cache,target=/app/.yarn/cache \
 ###############################
 FROM deps AS builder
 WORKDIR /app
+# Copiamos código fuente (sin sobrescribir estado de dependencias ya instalado en la etapa deps)
 COPY . .
+# Garantizamos que node_modules exista (si en el futuro se reintroduce el mount cache para node_modules en deps, esto volverá a instalar rápido usando .yarn/cache)
+RUN yarn install --immutable --mode=skip-build || yarn install --immutable || true
 # Build completo (frontend + backend) usando estado de instalación existente
 RUN yarn build:all || yarn build
 
@@ -53,7 +55,6 @@ RUN corepack enable && corepack prepare yarn@4.4.1 --activate && \
 # Primero instalar (con cache) y luego enfocar sólo backend en modo producción
 RUN --mount=type=cache,target=/app/.yarn/cache \
     --mount=type=cache,target=/root/.cache \
-    --mount=type=cache,target=/app/node_modules \
     yarn workspaces focus backend --production
 
 ###############################
@@ -66,7 +67,8 @@ ENV NODE_ENV=production
 ENV APP_DIST_DIR=/app/packages/app/dist
 # Copiamos solo lo necesario
 COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=prod-deps /app/packages/backend/node_modules ./packages/backend/node_modules
+# No copiamos packages/backend/node_modules porque el focus backend sólo generó node_modules raíz.
+# La resolución de módulos del backend (dist) ascenderá hasta /app/node_modules.
 COPY --from=prod-deps /app/packages/backend/package.json ./packages/backend/package.json
 COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
 COPY --from=builder /app/packages/app/dist ./packages/app/dist
