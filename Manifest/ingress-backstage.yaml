@@ -4,16 +4,16 @@ metadata:
   name: backstage-ingress
   namespace: backstage-manual
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # Solo la anotación de tracking, sin rewrite-target
 spec:
   rules:
     - host: backstage.local
       http:
         paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: backstage
-                port:
-                  number: 80
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: backstage
+                  port:
+                    number: 80
