@@ -57,7 +57,8 @@ jobs:
             jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}
 
       - name: Security scan (Trivy)
-        uses: aquasecurity/trivy-action@v0.14.0
+        # Updated action version (previous v0.14.0 tag not found). Pinning to a known stable minor release.
+        uses: aquasecurity/trivy-action@v0.13.0
         with:
           image-ref: jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}
           format: 'table'
