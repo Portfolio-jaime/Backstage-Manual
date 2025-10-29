@@ -58,7 +58,7 @@ RUN corepack enable && corepack prepare yarn@4.4.1 --activate && \
 RUN --mount=type=cache,target=/app/.yarn/cache \
     --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/app/node_modules \
-    yarn install --immutable && yarn workspaces focus backend --production
+    yarn workspaces focus backend --production
 
 ###############################
 # 4. Runtime final
