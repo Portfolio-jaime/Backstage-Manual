@@ -56,6 +56,16 @@ jobs:
             jaimehenao8126/backstage-custom:latest
             jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}
 
+      - name: Security scan (Trivy)
+        uses: aquasecurity/trivy-action@v0.14.0
+        with:
+          image-ref: jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
       - name: Clean failed pods and ReplicaSets after rollout
         if: failure()
         run: |

@@ -175,6 +175,45 @@ El Dockerfile multi-stage optimiza el proceso de construcción:
 3. **🔒 Security**: Usuario no-root y dependencias de producción únicamente
 4. **📊 Performance**: Imagen optimizada para startup rápido
 
+### 🔧 Arquitectura de Build Optimizada (Etapas reales)
+
+La versión actual del `Dockerfile` usa 4 etapas separadas para mejorar cache y seguridad:
+
+| Etapa | Imagen Base | Propósito | Detalles |
+|-------|-------------|-----------|----------|
+| deps | node:20-alpine | Instala dependencias completas (dev+prod) para cache estable | Sólo manifiestos copiados antes del código → cambios en src no invalidan esta capa |
+| builder | node:20-alpine (FROM deps) | Compila frontend (`packages/app/dist`) y backend (`packages/backend/dist`) | Usa dev deps; ejecuta `yarn build:all` |
+| prod-deps | node:20-alpine | Instala sólo deps de producción del backend | `yarn workspaces focus backend --production` reduce tamaño |
+| runtime | node:20-alpine | Imagen final mínima con dist + assets + deps backend | Copia `dist` y `node_modules` necesarios; `USER node` aplicado |
+
+#### 📁 Variable `APP_DIST_DIR`
+Se define `APP_DIST_DIR=/app/packages/app/dist` en runtime para facilitar servir assets del frontend. Si decides extraer el frontend a un contenedor separado o CDN:
+1. Elimina el `COPY --from=builder /app/packages/app/dist ...` del Dockerfile.
+2. Ajusta `app.baseUrl` en `app-config.production.yaml` al nuevo dominio.
+3. Implementa un Deployment/Job que publique los assets (ejemplo Nginx) o pipeline que suba a S3/CDN.
+
+#### 🧪 Comprobación rápida
+```bash
+docker run --rm -p 7007:7007 backstage-backend-test \
+    sh -c 'wget -qO- localhost:7007/health && echo OK'
+```
+
+#### 🛡️ Beneficios
+- Cache granular → builds incrementales más rápidos.
+- Menor superficie de ataque al excluir toolchain en runtime.
+- Facilita migrar a base distroless en el futuro.
+
+#### 🚀 Próximas optimizaciones sugeridas
+- `--mount=type=cache,target=/app/.yarn/cache` en etapas que ejecutan `yarn install`.
+- Usar `node:20-alpine` con eliminación explícita de páginas de man y cache apk (`rm -rf /var/cache/apk/*`).
+- Explorar imagen distroless (`gcr.io/distroless/nodejs20-debian12`) si las libs nativas funcionan.
+- Escaneo de vulnerabilidades automático (Trivy/Docker Scout) en CI.
+
+#### 📏 Sobre los tiempos de build
+Paquetes con binarios (`better-sqlite3`, `isolated-vm`) prolongan el build inicial. Con cache de `deps`/`prod-deps`, las reconstrucciones sólo recompilan código y reducen el tiempo total.
+
+---
+
 #### 🏃‍♂️ Build y Ejecución
 
 ```bash

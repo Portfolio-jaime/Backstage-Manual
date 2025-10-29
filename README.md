@@ -171,6 +171,25 @@ PROMETHEUS_RETENTION: "30d"
 - ✅ **Image Security**: Scans automáticos
 - ✅ **HTTPS Ready**: Configuración SSL preparada
 
+### 🔍 Detalles recientes de monitoreo y seguridad
+
+| Recurso | Archivo | Propósito |
+|---------|---------|-----------|
+| ServiceMonitor Backstage | `Manifest/backstage/service-monitor-backstage.yaml` | Scrapea métricas del backend en `:7007/metrics` |
+| Alertmanager Config | `Manifest/monitoring/values.yaml` | Ruta y receiver inicial `dev-null` para validar alertas |
+| NetworkPolicy Backstage | `Manifest/backstage/networkpolicy-backstage.yaml` | Restringe ingreso a Prometheus y Ingress NGINX |
+| Trivy Scan CI | `.github/workflows/docker-image.yml` | Falla build si hay vulnerabilidades HIGH/CRITICAL |
+| Cache mounts Yarn | `IDP/Dockerfile` | Acelera instalaciones y builds repetidos |
+
+#### Cómo extender Alertmanager
+Edita la sección `alertmanager.config.receivers` en `values.yaml` para añadir integraciones (email, Slack, PagerDuty). Después ejecuta `argocd app sync kube-prometheus-stack` o espera al auto-sync.
+
+#### Recomendaciones siguientes
+- Firmar la imagen con `cosign` y habilitar verificación en admisión.
+- Añadir dashboards específicos de Backstage (latencia API, duración scaffolder).
+- Definir SLOs y alertas de error rate y p95 latency.
+- Activar métricas de plugins personalizados.
+
 ## 📝 Roadmap y TODOs
 
 ### 🚀 Próximas Funcionalidades

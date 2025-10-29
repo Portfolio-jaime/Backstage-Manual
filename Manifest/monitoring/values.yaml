@@ -48,6 +48,23 @@ alertmanager:
       limits:
         cpu: 200m
         memory: 256Mi
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname','cluster','service']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+      receiver: 'dev-null'
+    receivers:
+      - name: 'dev-null'
+    inhibit_rules:
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'warning'
+        equal: ['alertname','namespace']
 
 # Node exporter
 prometheus-node-exporter:

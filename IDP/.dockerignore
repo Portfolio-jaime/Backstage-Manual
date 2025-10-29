@@ -2,7 +2,7 @@
 .yarn/cache
 .yarn/install-state.gz
 node_modules
-packages/*/src
+# Mantener node_modules fuera del contexto para reducir tamaño inicial
 packages/*/node_modules
-plugins
+# Permitimos src y plugins para que el build de frontend funcione
 *.local.yaml
