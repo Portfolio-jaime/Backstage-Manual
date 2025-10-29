@@ -23,7 +23,7 @@ jobs:
         run: |
           echo "🔍 Build context information:"
           echo "  Context: ."
-          echo "  Dockerfile: ./Docker/Dockerfile"
+          echo "  Dockerfile: ./IDP/Dockerfile"
           echo "  Working directory: $(pwd)"
           echo "  Files in root:"
           ls -la | head -10
@@ -72,7 +72,7 @@ jobs:
 
       - name: Update Backstage manifest with new image tag
         run: |
-          sed -i "s|image: jaimehenao8126/backstage-custom:.*|image: jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}|" Manifest/deploy-backstage.yaml
+          sed -i "s|image: jaimehenao8126/backstage-custom:.*|image: jaimehenao8126/backstage-custom:${{ steps.vars.outputs.commit_hash }}|" Manifest/backstage/deploy-backstage.yaml
 
       - name: Commit and push manifest update
         env:

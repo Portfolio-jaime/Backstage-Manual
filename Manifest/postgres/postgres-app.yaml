@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres
+  namespace: backstage-manual
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Portfolio-jaime/Backstage-Manual.git'
+    targetRevision: main
+    path: Manifest/postgres
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: backstage-manual
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+      - Replace=true
