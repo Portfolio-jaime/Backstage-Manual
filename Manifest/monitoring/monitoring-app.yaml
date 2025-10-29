@@ -13,14 +13,14 @@ spec:
     targetRevision: 65.0.0
     helm:
       valueFiles:
-        - $values/monitoring/values.yaml
+        - $values/Manifest/monitoring/values.yaml
   sources:
     - chart: kube-prometheus-stack
       repoURL: https://prometheus-community.github.io/helm-charts
       targetRevision: 65.0.0
       helm:
         valueFiles:
-          - $values/monitoring/values.yaml
+          - $values/Manifest/monitoring/values.yaml
     - repoURL: https://github.com/Portfolio-jaime/Backstage-Manual
       targetRevision: main
       ref: values
