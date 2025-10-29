@@ -58,9 +58,10 @@ jobs:
 
       - name: Clean failed pods and ReplicaSets after rollout
         if: failure()
+        continue-on-error: true
         run: |
-          kubectl delete pod -n backstage-manual --field-selector=status.phase=Failed
-          kubectl delete rs -n backstage-manual --field-selector=status.replicas=0
+          kubectl delete pod -n backstage-manual --field-selector=status.phase=Failed || true
+          kubectl delete rs -n backstage-manual --field-selector=status.replicas=0 || true
       - name: Output build information
         run: |
           echo "✅ Docker image built and pushed successfully!"

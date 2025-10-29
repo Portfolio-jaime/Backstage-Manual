@@ -18,7 +18,8 @@ RUN apk add --no-cache python3 make g++ git
 COPY package.json yarn.lock .yarnrc.yml .yarn/ ./
 COPY packages/backend/package.json packages/backend/package.json
 COPY packages/app/package.json packages/app/package.json
-RUN corepack enable && corepack prepare yarn@4.4.1 --activate
+RUN corepack enable && corepack prepare yarn@4.4.1 --activate && \
+    yarn set version 4.4.1
 # Instalación inmutable para asegurar reproducibilidad (cache mounts deben ir antes del comando)
 RUN --mount=type=cache,target=/app/.yarn/cache \
     --mount=type=cache,target=/root/.cache \
@@ -45,7 +46,8 @@ COPY --from=deps /app/.yarn /app/.yarn
 COPY --from=deps /app/.yarnrc.yml /app/.yarnrc.yml
 COPY package.json yarn.lock ./
 COPY packages/backend/package.json packages/backend/package.json
-RUN corepack enable && corepack prepare yarn@4.4.1 --activate
+RUN corepack enable && corepack prepare yarn@4.4.1 --activate && \
+    yarn set version 4.4.1
 # Primero instalar (con cache) y luego enfocar sólo backend en modo producción
 RUN --mount=type=cache,target=/app/.yarn/cache \
     --mount=type=cache,target=/root/.cache \
