@@ -19,11 +19,11 @@ COPY package.json yarn.lock .yarnrc.yml .yarn/ ./
 COPY packages/backend/package.json packages/backend/package.json
 COPY packages/app/package.json packages/app/package.json
 RUN corepack enable && corepack prepare yarn@4.4.1 --activate
-# Instalación inmutable para asegurar reproducibilidad
-RUN --mount=type=cache,target=/workspace/.yarn/cache \
-	--mount=type=cache,target=/root/.cache \
-	--mount=type=cache,target=/workspace/node_modules \
-	yarn install --immutable
+# Instalación inmutable para asegurar reproducibilidad (cache mounts deben ir antes del comando)
+RUN --mount=type=cache,target=/app/.yarn/cache \
+    --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/app/node_modules \
+    yarn install --immutable
 
 ###############################
 # 2. Builder (usa dev deps)
@@ -40,14 +40,17 @@ RUN yarn build:all || yarn build
 FROM node:${NODE_VERSION} AS prod-deps
 WORKDIR /app
 RUN apk add --no-cache python3 make g++ git
-COPY package.json yarn.lock .yarnrc.yml .yarn/ ./
+# Copiamos artefactos de Yarn del stage anterior para asegurar yarnPath existente
+COPY --from=deps /app/.yarn /app/.yarn
+COPY --from=deps /app/.yarnrc.yml /app/.yarnrc.yml
+COPY package.json yarn.lock ./
 COPY packages/backend/package.json packages/backend/package.json
 RUN corepack enable && corepack prepare yarn@4.4.1 --activate
-RUN yarn install \
-	--mount=type=cache,target=/workspace/.yarn/cache \
-	--mount=type=cache,target=/root/.cache \
-	--mount=type=cache,target=/workspace/node_modules \
-	&& yarn workspaces focus backend --production
+# Primero instalar (con cache) y luego enfocar sólo backend en modo producción
+RUN --mount=type=cache,target=/app/.yarn/cache \
+    --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/app/node_modules \
+    yarn install --mode=update && yarn workspaces focus backend --production
 
 ###############################
 # 4. Runtime final
