@@ -80,9 +80,15 @@ jobs:
         run: |
           git config --global user.email "github-actions@users.noreply.github.com"
           git config --global user.name "github-actions"
-          git add Manifest/deploy-backstage.yaml
-          git commit -m "Update Backstage image tag to ${{ steps.vars.outputs.commit_hash }}"
-            git push
+          # Add the correct manifest path (nested in backstage/)
+          git add Manifest/backstage/deploy-backstage.yaml || true
+          # Skip commit if no staged changes (avoids exit 1 on empty commit)
+          if git diff --cached --quiet; then
+            echo "No manifest changes to commit. Skipping push.";
+          else
+            git commit -m "Update Backstage image tag to ${{ steps.vars.outputs.commit_hash }}";
+            git push;
+          fi
   
       - name: Workflow summary
         run: |

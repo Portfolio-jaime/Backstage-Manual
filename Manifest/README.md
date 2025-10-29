@@ -41,15 +41,15 @@ graph TD;
 
 ## 🗂️ Detalle de Carpetas
 
-- **backstage/**: Despliegue, servicio, ingress, secrets y apps de ArgoCD para Backstage.
-- **postgres/**: Despliegue, servicio, secrets, PVC/PV y app de ArgoCD para PostgreSQL.
-- **monitoring/**: Despliegue y servicio de Prometheus y Grafana, ingress y configmap.
+- **backstage/**: Deployment, Service, Ingress, Secrets y ArgoCD Application de Backstage.
+- **postgres/**: Deployment, Service, Secrets, PV/PVC y ArgoCD Application de PostgreSQL.
+- **monitoring/**: ArgoCD Application Helm (`kube-prometheus-stack`) + `values.yaml` (ya NO se usan manifiestos manuales separados para Prometheus/Grafana).
 
 ## 📝 TODO
-- [ ] Añadir ejemplos de dashboards en Grafana
-- [ ] Documentar integración de Alertmanager
-- [ ] Mejorar la seguridad de los secrets
-- [ ] Añadir pruebas automáticas para los manifiestos
+- [ ] Añadir ConfigMaps de dashboards personalizados (Grafana)
+- [ ] Integrar Alertmanager receivers (Slack / Email)
+- [ ] Revisar rotación y cifrado de secrets
+- [ ] Añadir validación automática (kubeconform / OPA) en CI
 
 ---
 **Desarrollado con ❤️ por Jaime Henao**

@@ -57,6 +57,62 @@ yarn start
 
 La aplicación estará disponible en `http://localhost:3000`
 
+## Imagen Docker de Producción
+
+Se usa un Dockerfile multi-stage optimizado (`IDP/Dockerfile`) que:
+
+1. Construye todos los paquetes (`builder` stage).
+2. Instala solo dependencias de producción (`prod-deps` stage) usando `yarn workspaces focus --production`.
+3. Copia los artefactos compilados y `node_modules` necesarios al stage final (`runtime`).
+4. Ejecuta el backend usando `node packages/backend/dist/index.cjs.js` con `dumb-init` para manejo correcto de señales.
+
+### Build local (opcional)
+```bash
+docker build -f IDP/Dockerfile -t backstage:local ./IDP
+docker run --rm -p 7007:7007 --env-file .env backstage:local
+```
+
+## Pipeline CI/CD (GitHub Actions)
+
+Workflow: `.github/workflows/docker-image.yml`
+
+Pasos clave:
+- Extrae el hash corto del commit y lo usa como tag secundario.
+- Construye y publica arquitectura multi-plataforma (`linux/amd64`, `linux/arm64`).
+- Actualiza el manifiesto `Manifest/backstage/deploy-backstage.yaml` reemplazando la línea de la imagen.
+- Evita fallos por commits vacíos (si no hay cambios, no hace push).
+
+### Ejemplo de tags publicados
+```
+jaimehenao8126/backstage-custom:latest
+jaimehenao8126/backstage-custom:<short-sha>
+```
+
+### Actualización automática del manifiesto
+La línea afectada en `deploy-backstage.yaml`:
+```yaml
+image: jaimehenao8126/backstage-custom:<short-sha>
+```
+ArgoCD sincroniza la nueva imagen tras el push.
+
+## Runtime y Entrypoint
+
+En producción se ejecuta el archivo compilado `packages/backend/dist/index.cjs.js`. Esto elimina la necesidad de tener el código fuente TypeScript en la imagen final y reduce el tamaño.
+
+## Troubleshooting
+
+| Problema | Causa común | Solución |
+|---------|-------------|----------|
+| `MODULE_NOT_FOUND /app/packages/backend/src/index` | Ejecución de script que espera código fuente en imagen final | Usar el nuevo Dockerfile multi-stage y entrypoint compilado |
+| Commit vacío falla en workflow | `git commit` sin cambios | Ya mitigado: se verifica si hay cambios antes de commitear |
+| Imagen no se actualiza en cluster | ArgoCD no sincronizó aún | Forzar sync desde la UI o `argocd app sync backstage` |
+
+## Próximos Pasos
+
+- Añadir métricas personalizadas vía `kube-prometheus-stack`.
+- Integrar alertas en Alertmanager (Slack / Email).
+- Documentar uso de plugins adicionales (TechDocs, Scaffolder templates).
+
 ## Scripts Disponibles
 
 - `yarn start` - Inicia el servidor de desarrollo

@@ -20,8 +20,6 @@ Backstage-solutions/
 │   ├── service-*.yaml     # Servicios
 │   ├── secret-*.yaml      # Credenciales
 │   └── ns.yaml           # Namespace
-├── Docker/               # Configuración de containerización
-│   └── Dockerfile        # Imagen de Backstage
 ├── Scripts/              # Utilidades de desarrollo
 │   └── switch_git_profile.py  # Gestión de perfiles Git
 ├── .github/              # CI/CD Pipeline
@@ -59,7 +57,6 @@ Backstage-solutions/
 │   ├── monitoring/         # Prometheus y Grafana
 │   ├── ns.yaml             # Namespace
 │   └── storageclass-manual.yaml # StorageClass
-├── Docker/                 # Dockerfile
 ├── Scripts/                # Utilidades
 └── README.md               # Documentación principal
 ```
@@ -152,14 +149,16 @@ kubectl get events -n backstage --sort-by=.metadata.creationTimestamp
 - Configurar RBAC en Kubernetes
 - Monitoreo de logs y métricas
 
-## 📚 Documentación Adicional
+## � Migración Reciente
 
-- [📖 IDP/README.md](IDP/README.md) - Documentación de la aplicación Backstage
-- [☸️ Manifest/README.md](Manifest/README.md) - Detalles de los manifiestos de Kubernetes
-- [🐳 Docker/README.md](Docker/README.md) - Configuración de containerización
-- [🔧 Scripts/README.md](Scripts/README.md) - Utilidades de desarrollo
-- [🔄 .github/README.md](.github/README.md) - Pipeline de CI/CD
+Se migró el stack de monitoreo de manifiestos manuales a un chart Helm (`kube-prometheus-stack`) gestionado por ArgoCD, reduciendo complejidad y facilitando upgrades.
 
+## 📚 Documentación por Carpeta
+
+   - [`Manifest/backstage/README.md`](Manifest/backstage/README.md) – Detalles despliegue Backstage.
+   - [`Manifest/postgres/README.md`](Manifest/postgres/README.md) – Base de datos y persistencia.
+   - [`Manifest/monitoring/README.md`](Manifest/monitoring/README.md) – Helm chart de monitoreo.
+ 
 ## 🤝 Contribución
 
 1. Fork el proyecto
