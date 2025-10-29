@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/Portfolio-jaime/Backstage-Manual.git'
     targetRevision: main
-    path: Manifest
+    path: Manifest/backstage
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: backstage-manual
