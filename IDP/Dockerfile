@@ -32,6 +32,12 @@ RUN --mount=type=cache,target=/app/.yarn/cache \
 FROM deps AS builder
 WORKDIR /app
 COPY . .
+# Al copiar el código fuente se sobrescribe potencialmente .yarn (pierde install-state.gz).
+# Volvemos a generar el estado de instalación sin alterar lockfile.
+RUN --mount=type=cache,target=/app/.yarn/cache \
+    --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/app/node_modules \
+    yarn install --immutable --inline-builds
 # Build completo (frontend + backend)
 RUN yarn build:all || yarn build
 
