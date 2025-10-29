@@ -1,150 +1,478 @@
-# Backstage IDP (Internal Developer Platform)
+# 🎨 Backstage IDP - Internal Developer Platform
 
-Esta es una aplicación Backstage personalizada, un portal de desarrollador interno que proporciona una experiencia unificada para gestionar servicios, herramientas y documentación.
+[![Backstage](https://img.shields.io/badge/Backstage-0095D5?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTMuMSAyIDE0IDIuOSAxNCA0VjE2QzE0IDE3LjEgMTMuMSAxOCA5LjUgMTguNUM3LjkgMTguNSA3IDE3LjYgNyAxNlY0QzcgMi45IDcuOSAyIDkgMkgxNUMxNS4xIDIgMTYgMi45IDE2IDRWMTJDMTYgMTMuMSAxNS4xIDE0IDEzLjUgMTQuNUMxMS45IDE0LjUgMTEgMTMuNiAxMSAxMloiIGZpbGw9IiMwMDk1RDUiLz4KPC9zdmc+)](https://backstage.io/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org/)
 
-## Descripción General
+> Una aplicación **Backstage personalizada** que proporciona un portal de desarrollador interno unificado para gestionar servicios, herramientas y documentación con arquitectura modular y extensible.
 
-Backstage es una plataforma de código abierto creada por Spotify para construir portales de desarrolladores. Esta implementación incluye:
+## 📋 Descripción General
 
-- **Catálogo de Servicios**: Gestión centralizada de componentes, APIs y recursos
-- **Documentación Técnica**: Portal unificado para toda la documentación
-- **Herramientas de Desarrollo**: Integración con herramientas de CI/CD, monitoreo y más
-- **Plantillas de Proyecto**: Scaffolding automatizado para nuevos proyectos
+Backstage es una plataforma de código abierto creada por Spotify para construir **portales de desarrolladores enterprise**. Esta implementación incluye una arquitectura completa con componentes modulares, plugins personalizados y integración con herramientas de desarrollo modernas.
 
-## Estructura del Proyecto
+### ✨ Características Principales
+
+- 🎯 **Catálogo de Servicios**: Gestión centralizada de componentes, APIs y recursos
+- 📚 **Documentación Técnica**: Portal unificado con TechDocs integrado
+- 🔧 **Herramientas de Desarrollo**: Integración nativa con CI/CD, monitoreo y SCM
+- 🏗️ **Plantillas de Proyecto**: Scaffolding automatizado con Scaffolder
+- 🔍 **Búsqueda Unificada**: Motor de búsqueda inteligente con filtros avanzados
+- 🔌 **Plugins Extensibles**: Arquitectura modular para funcionalidades personalizadas
+
+## 🏗️ Arquitectura del Sistema
+
+```mermaid
+graph TB
+    subgraph "🌐 Frontend Layer"
+        A[React SPA] --> B[Material-UI Components]
+        A --> C[Backstage UI Library]
+        A --> D[Custom Plugins UI]
+    end
+
+    subgraph "⚙️ Backend Layer"
+        E[Express Server] --> F[Backstage Backend]
+        F --> G[Plugin Manager]
+        F --> H[Auth Provider]
+        F --> I[Database Layer]
+    end
+
+    subgraph "🔌 Plugin Ecosystem"
+        J[Core Plugins]
+        K[Custom Plugins]
+        L[Third-party Plugins]
+    end
+
+    subgraph "💾 Data Layer"
+        M[(PostgreSQL)]
+        N[(SQLite - Dev)]
+        O[External APIs]
+    end
+
+    A --> E
+    E --> J
+    E --> K
+    E --> L
+    F --> M
+    F --> N
+    F --> O
+
+    style A fill:#e3f2fd
+    style E fill:#f3e5f5
+    style J fill:#e8f5e8
+```
+
+## 📂 Estructura del Proyecto
 
 ```
-IDP/
-├── packages/
-│   ├── app/                 # Aplicación frontend React
-│   └── backend/             # Backend Node.js/TypeScript
-├── plugins/                 # Plugins personalizados
-├── examples/                # Ejemplos de entidades y plantillas
-├── app-config.yaml          # Configuración de desarrollo
-├── app-config.production.yaml  # Configuración de producción
-├── backstage.json           # Versión de Backstage
-├── package.json             # Dependencias del proyecto
-└── yarn.lock               # Lockfile de Yarn
+🎨 IDP/
+├── 📦 packages/                    # 🏠 Paquetes principales
+│   ├── 🎭 app/                     # 🎨 Frontend React SPA
+│   │   ├── 📱 src/components/      # 🧩 Componentes UI
+│   │   ├── 🖼️ public/             # 📁 Assets estáticos
+│   │   └── 📋 src/apis.ts          # 🔗 Configuración APIs
+│   └── ⚙️ backend/                 # 🔧 Backend Node.js
+│       ├── 📁 src/                 # 💻 Código fuente
+│       ├── 🐳 Dockerfile           # 📦 Containerización
+│       └── 📋 package.json         # 📦 Dependencias
+├── 🔌 plugins/                     # 🧩 Plugins personalizados
+│   └── 📁 custom-plugin/           # 🔧 Plugin de ejemplo
+├── 📋 examples/                    # 📖 Ejemplos y templates
+│   ├── 📄 entities.yaml            # 🎯 Entidades de catálogo
+│   └── 🏗️ template/                # 📋 Plantilla de proyecto
+├── ⚙️ app-config.yaml              # 🔧 Configuración desarrollo
+├── 🚀 app-config.production.yaml   # 🔧 Configuración producción
+├── 📋 backstage.json               # 🏷️ Metadatos Backstage
+├── 📦 package.json                 # 📦 Dependencias raíz
+└── 🔒 yarn.lock                    # 🔐 Lockfile dependencias
 ```
 
-## Tecnologías Utilizadas
+## 🛠️ Tecnologías y Versiones
 
-- **Framework**: Backstage v1.44.0
-- **Frontend**: React con TypeScript
-- **Backend**: Node.js con Express
-- **Base de Datos**: PostgreSQL
-- **Gestión de Paquetes**: Yarn
-- **Lenguaje**: TypeScript
-- **Testing**: Playwright para E2E
+| Componente | Tecnología | Versión | Propósito |
+|------------|------------|---------|-----------|
+| 🎯 **Framework** | Backstage | v1.44.0 | Plataforma base |
+| 🎨 **Frontend** | React + TypeScript | v18.x | UI interactiva |
+| ⚙️ **Backend** | Node.js + Express | v20.x | API server |
+| 💾 **Base de Datos** | PostgreSQL | v15.x | Persistencia datos |
+| 📦 **Gestión Paquetes** | Yarn | v4.x | Dependency management |
+| 🧪 **Testing E2E** | Playwright | v1.x | Pruebas automatizadas |
+| 🐳 **Containerización** | Docker | v24.x | Empaquetado aplicación |
 
-## Inicio Rápido
+> Nota: El `Dockerfile` oficial ahora vive únicamente en `IDP/Dockerfile` (se eliminó la carpeta raíz `Docker/`). Se simplificó la etapa `runtime` para copiar un único árbol `node_modules` consolidado y evitar errores de rutas inexistentes en workspaces.
+>
+> Optimización adicional: Solo se enfocan dependencias de producción del backend (`yarn workspaces focus backend --production`), reduciendo el tamaño de la imagen y tiempo de build. Se añadió un `HEALTHCHECK` que intenta `/health` o `/healthcheck`.
 
-### Prerrequisitos
+## 🚀 Guías de Inicio Rápido
 
-- Node.js 20 o 22
-- Yarn package manager
-- PostgreSQL (para persistencia de datos)
+### ⚡ Desarrollo Local (3 minutos)
 
-### Instalación y Ejecución
+#### 📋 Prerrequisitos
+
+| Requisito | Versión | Comando de verificación |
+|-----------|---------|------------------------|
+| 🟢 **Node.js** | 20.x o 22.x | `node --version` |
+| 📦 **Yarn** | 4.x | `yarn --version` |
+| 🐘 **PostgreSQL** | 15.x | `psql --version` |
+| 🐳 **Docker** | 24.x (opcional) | `docker --version` |
+
+#### 🛠️ Instalación y Ejecución
+
+```mermaid
+flowchart TD
+    A[📦 Clonar repositorio] --> B[📂 cd IDP]
+    B --> C[📥 yarn install]
+    C --> D[⚙️ Configurar BD]
+    D --> E[▶️ yarn start]
+    E --> F[🌐 http://localhost:3000]
+
+    style A fill:#e8f5e8
+    style F fill:#d4edda
+```
 
 ```bash
-# Instalar dependencias
+# 1. Instalar dependencias del proyecto
 yarn install
 
-# Iniciar la aplicación en modo desarrollo
+# 2. Configurar base de datos PostgreSQL
+# Crear base de datos y usuario según app-config.yaml
+
+# 3. Iniciar servidor de desarrollo
 yarn start
+
+# 4. Acceder a la aplicación
+# http://localhost:3000
 ```
 
-La aplicación estará disponible en `http://localhost:3000`
+### 🐳 Producción con Docker
 
-## Imagen Docker de Producción
+#### 🏗️ Imagen Multi-stage Optimizada
 
-Se usa un Dockerfile multi-stage optimizado (`IDP/Dockerfile`) que:
+```mermaid
+flowchart LR
+    subgraph "🏗️ Builder Stage"
+        A[Clonar código fuente] --> B[Instalar dependencias]
+        B --> C[Compilar TypeScript]
+    end
 
-1. Construye todos los paquetes (`builder` stage).
-2. Instala solo dependencias de producción (`prod-deps` stage) usando `yarn workspaces focus --production`.
-3. Copia los artefactos compilados y `node_modules` necesarios al stage final (`runtime`).
-4. Ejecuta el backend usando `node packages/backend/dist/index.cjs.js` con `dumb-init` para manejo correcto de señales.
+    subgraph "📦 Production Stage"
+        D[Node.js runtime] --> E[Copiar build artifacts]
+        E --> F[Configurar usuario no-root]
+        F --> G[Optimizar imagen final]
+    end
 
-### Build local (opcional)
+    C --> D
+    G --> H[🚀 Imagen lista para producción]
+
+    style H fill:#d4edda
+```
+
+El Dockerfile multi-stage optimiza el proceso de construcción:
+
+1. **🏗️ Builder Stage**: Compila código TypeScript y dependencias
+2. **📦 Production Stage**: Crea imagen final minimalista
+3. **🔒 Security**: Usuario no-root y dependencias de producción únicamente
+4. **📊 Performance**: Imagen optimizada para startup rápido
+
+#### 🏃‍♂️ Build y Ejecución
+
 ```bash
-docker build -f IDP/Dockerfile -t backstage:local ./IDP
-docker run --rm -p 7007:7007 --env-file .env backstage:local
+# Construir imagen local
+docker build -f Dockerfile -t backstage:local .
+
+# Ejecutar contenedor
+docker run --rm -p 7007:7007 \
+  --env-file .env \
+  backstage:local
 ```
 
-## Pipeline CI/CD (GitHub Actions)
+## 🔄 Pipeline CI/CD Automatizado
 
-Workflow: `.github/workflows/docker-image.yml`
+Documentación ampliada del pipeline: ver `../.github/workflows/docker-image.yml`. Los manifests que consume ArgoCD para Backstage y monitoreo están en `../Manifest/backstage/` y `../Manifest/monitoring/` respectivamente.
 
-Pasos clave:
-- Extrae el hash corto del commit y lo usa como tag secundario.
-- Construye y publica arquitectura multi-plataforma (`linux/amd64`, `linux/arm64`).
-- Actualiza el manifiesto `Manifest/backstage/deploy-backstage.yaml` reemplazando la línea de la imagen.
-- Evita fallos por commits vacíos (si no hay cambios, no hace push).
+### 🚀 GitHub Actions Workflow
 
-### Ejemplo de tags publicados
+```mermaid
+flowchart LR
+    subgraph "🔄 GitHub Actions Pipeline"
+        A[👨‍💻 Push to main] --> B[🔍 Checkout Code]
+        B --> C[🏗️ Setup Buildx]
+        C --> D[🔐 Login DockerHub]
+        D --> E[📝 Extract Commit Hash]
+        E --> F[🏗️ Build Multi-arch]
+        F --> G[📤 Push Images]
+        G --> H[📝 Update Manifest]
+        H --> I[🔄 ArgoCD Sync]
+    end
+
+    subgraph "🏷️ Image Tags"
+        J[latest] --> K[short-sha]
+    end
+
+    F --> J
+    F --> K
+
+    style A fill:#e8f5e8
+    style I fill:#d4edda
 ```
+
+#### ⚙️ Configuración del Workflow
+
+**Archivo**: `.github/workflows/docker-image.yml`
+
+**Características principales**:
+- 🏗️ **Multi-plataforma**: `linux/amd64`, `linux/arm64`
+- 🏷️ **Versionado automático**: Tags `latest` y `<commit-hash>`
+- 🔄 **GitOps**: Actualización automática de manifests
+- 🛡️ **Seguridad**: Secrets encriptados
+
+#### 📦 Imágenes Publicadas
+
+```bash
+# Tags generados automáticamente
 jaimehenao8126/backstage-custom:latest
-jaimehenao8126/backstage-custom:<short-sha>
+jaimehenao8126/backstage-custom:a1b2c3d
 ```
 
-### Actualización automática del manifiesto
-La línea afectada en `deploy-backstage.yaml`:
+#### 🔄 Actualización Automática
+
 ```yaml
-image: jaimehenao8126/backstage-custom:<short-sha>
+# Manifest actualizado automáticamente
+spec:
+  template:
+    spec:
+      containers:
+      - name: backstage
+        image: jaimehenao8126/backstage-custom:a1b2c3d
 ```
-ArgoCD sincroniza la nueva imagen tras el push.
 
-## Runtime y Entrypoint
+### 🏃‍♂️ Runtime y Optimización
 
-En producción se ejecuta el archivo compilado `packages/backend/dist/index.cjs.js`. Esto elimina la necesidad de tener el código fuente TypeScript en la imagen final y reduce el tamaño.
+#### ⚡ Entrypoint Optimizado
 
-## Troubleshooting
+```mermaid
+flowchart TD
+    A[🐳 Container Start] --> B[dumb-init]
+    B --> C[node packages/backend/dist/index.cjs.js]
+    C --> D[🚀 Backstage Ready]
 
-| Problema | Causa común | Solución |
-|---------|-------------|----------|
-| `MODULE_NOT_FOUND /app/packages/backend/src/index` | Ejecución de script que espera código fuente en imagen final | Usar el nuevo Dockerfile multi-stage y entrypoint compilado |
-| Commit vacío falla en workflow | `git commit` sin cambios | Ya mitigado: se verifica si hay cambios antes de commitear |
-| Imagen no se actualiza en cluster | ArgoCD no sincronizó aún | Forzar sync desde la UI o `argocd app sync backstage` |
+    style D fill:#d4edda
+```
 
-## Próximos Pasos
+**Beneficios del approach compilado**:
+- 📦 **Imagen más pequeña**: Sin código fuente TypeScript
+- 🚀 **Startup más rápido**: Código pre-compilado
+- 🔒 **Mejor seguridad**: Solo runtime necesario
+- 📊 **Performance**: Optimizaciones de Node.js aplicadas
 
-- Añadir métricas personalizadas vía `kube-prometheus-stack`.
-- Integrar alertas en Alertmanager (Slack / Email).
-- Documentar uso de plugins adicionales (TechDocs, Scaffolder templates).
+## 🆘 Troubleshooting Avanzado
 
-## Scripts Disponibles
+### 🔍 Diagnóstico de Problemas Comunes
 
-- `yarn start` - Inicia el servidor de desarrollo
-- `yarn build` - Construye la aplicación para producción
-- `yarn test` - Ejecuta las pruebas unitarias
-- `yarn test:e2e` - Ejecuta las pruebas end-to-end con Playwright
-- `yarn lint` - Ejecuta el linter de código
-- `yarn fix` - Corrige automáticamente problemas de linting
+| 🚨 Problema | 🔍 Causa Común | ✅ Solución |
+|-------------|----------------|-------------|
+| `MODULE_NOT_FOUND` | Script espera código fuente | Usar Dockerfile multi-stage |
+| 📝 Commit vacío falla | Sin cambios en repo | Verificación automática implementada |
+| 🖼️ Imagen no actualiza | ArgoCD no sincronizó | `argocd app sync backstage` |
+| 🔐 Auth falla | Credenciales expiradas | Rotar secrets en DockerHub |
+| 🏗️ Build falla | Dependencias corruptas | `rm -rf node_modules && yarn install` |
 
-## Configuración
+### 🛠️ Comandos de Debug
 
-### Desarrollo
-El archivo `app-config.yaml` contiene la configuración para desarrollo local.
+```bash
+# Ver logs del contenedor local
+docker run --rm backstage:local --help
 
-### Producción
-El archivo `app-config.production.yaml` contiene la configuración optimizada para entornos de producción.
+# Verificar imagen en DockerHub
+docker pull jaimehenao8126/backstage-custom:latest
 
-## Plugins Incluidos
+# Ver estado del workflow
+gh run list --workflow=docker-image.yml
+```
 
-- **Catálogo**: Gestión de entidades (servicios, componentes, APIs)
-- **Búsqueda**: Motor de búsqueda integrado
-- **Plantillas**: Sistema de scaffolding para nuevos proyectos
+## 📋 Roadmap y Mejoras Futuras
 
-## Contribución
+### 🚀 Próximas Funcionalidades
 
-1. Clona el repositorio
-2. Instala dependencias con `yarn install`
-3. Crea una rama para tu feature
-4. Realiza tus cambios
-5. Ejecuta las pruebas con `yarn test`
-6. Envía un pull request
+- [ ] 📊 **Métricas Personalizadas**: Integración con `kube-prometheus-stack`
+- [ ] 🚨 **Alertas Avanzadas**: Alertmanager con Slack/Email
+- [ ] 📚 **TechDocs Mejorado**: Generación automática de docs
+- [ ] 🏗️ **Scaffolder Templates**: Plantillas personalizadas
+- [ ] 🔍 **Search Avanzado**: Búsqueda semántica
+- [ ] 🔌 **Plugin Marketplace**: Catálogo de plugins internos
 
-## Soporte
+### 🛠️ Mejoras Técnicas
 
-Para soporte técnico o preguntas sobre esta implementación de Backstage, consulta la documentación oficial en [backstage.io](https://backstage.io).
+- [ ] 💾 **Cache de Build**: Acelerar pipelines CI/CD
+- [ ] 🧪 **Testing Automatizado**: Cobertura completa
+- [ ] 📈 **Performance Monitoring**: APM integrado
+- [ ] 🔄 **Auto-scaling**: Configuración HPA
+- [ ] 🏗️ **Multi-stage Avanzado**: Optimizaciones adicionales
+
+## 🛠️ Scripts y Comandos
+
+### 📋 Comandos Disponibles
+
+| Comando | Descripción | Uso Típico |
+|---------|-------------|-------------|
+| `yarn start` | 🚀 Servidor de desarrollo | Desarrollo local |
+| `yarn build` | 🏗️ Build de producción | CI/CD pipeline |
+| `yarn test` | 🧪 Pruebas unitarias | Validación código |
+| `yarn test:e2e` | 🤖 Pruebas E2E Playwright | Testing completo |
+| `yarn lint` | 🔍 Linting código | Calidad código |
+| `yarn fix` | 🔧 Auto-fix linting | Corrección automática |
+
+### 📊 Workflow de Desarrollo
+
+```mermaid
+flowchart TD
+    A[💻 yarn start] --> B[🔧 Desarrollo]
+    B --> C[🧪 yarn test]
+    C --> D[🔍 yarn lint]
+    D --> E[🏗️ yarn build]
+    E --> F[🐳 Docker build]
+
+    style A fill:#e8f5e8
+    style F fill:#d4edda
+```
+
+## ⚙️ Configuración del Sistema
+
+### 🏠 Desarrollo Local
+
+**Archivo**: `app-config.yaml`
+
+```yaml
+app:
+  title: Backstage IDP
+  baseUrl: http://localhost:3000
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+
+database:
+  client: pg
+  connection:
+    host: localhost
+    port: 5432
+    user: backstage
+    password: password
+    database: backstage
+```
+
+### 🚀 Producción
+
+**Archivo**: `app-config.production.yaml`
+
+**Características optimizadas**:
+- 🔒 Configuración de seguridad avanzada
+- 📊 Logging estructurado
+- 🔄 Health checks
+- 📈 Métricas de performance
+- 🔐 Secrets management
+
+## 🔌 Plugins y Extensiones
+
+### 📦 Plugins Core Incluidos
+
+| Plugin | Función | Estado |
+|--------|---------|--------|
+| 🎭 **Catálogo** | Gestión entidades | ✅ Activo |
+| 🔍 **Búsqueda** | Motor de búsqueda | ✅ Activo |
+| 🏗️ **Scaffolder** | Plantillas proyectos | ✅ Activo |
+| 📚 **TechDocs** | Documentación | ✅ Activo |
+| 🔐 **Auth** | Autenticación | ✅ Activo |
+
+### 🧩 Arquitectura de Plugins
+
+```mermaid
+graph TB
+    subgraph "🔌 Plugin System"
+        A[Plugin Manager] --> B[Core Plugins]
+        A --> C[Custom Plugins]
+        A --> D[Third-party Plugins]
+    end
+
+    subgraph "🔗 Integration Points"
+        B --> E[Frontend Routes]
+        B --> F[Backend APIs]
+        B --> G[Database Models]
+    end
+
+    style A fill:#e1f5fe
+```
+
+## 🤝 Guía de Contribución
+
+### 📋 Proceso de Desarrollo
+
+```mermaid
+flowchart LR
+    A[🍴 Fork] --> B[📥 Clone]
+    B --> C[🌿 Branch]
+    C --> D[💻 Develop]
+    D --> E[🧪 Test]
+    E --> F[🔄 Pull Request]
+    F --> G[👀 Review]
+    G --> H[🚀 Merge]
+
+    style A fill:#e8f5e8
+    style H fill:#d4edda
+```
+
+### 🛠️ Configuración para Contribuidores
+
+1. **Clonar y configurar**:
+   ```bash
+   git clone https://github.com/Portfolio-jaime/Backstage-Manual.git
+   cd IDP
+   yarn install
+   ```
+
+2. **Configurar entorno**:
+   ```bash
+   cp app-config.yaml app-config.local.yaml
+   # Personalizar configuración local
+   ```
+
+3. **Ejecutar tests**:
+   ```bash
+   yarn test
+   yarn test:e2e
+   ```
+
+### 📝 Estándares de Código
+
+- 🔍 **Linting**: ESLint + Prettier
+- 🧪 **Testing**: Jest + React Testing Library
+- 📚 **Documentación**: TypeDoc para APIs
+- 🔄 **Commits**: Conventional commits
+
+## 📞 Soporte y Comunidad
+
+### 🆘 Canales de Ayuda
+
+- 📖 **Documentación Oficial**: [backstage.io/docs](https://backstage.io/docs)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/Portfolio-jaime/Backstage-Manual/issues)
+- 💬 **Discusiones**: [GitHub Discussions](https://github.com/Portfolio-jaime/Backstage-Manual/discussions)
+- 📧 **Email**: jaimehenao8126@outlook.com
+
+### 🌟 Comunidad
+
+- 🤝 **Contribuciones abiertas**
+- 📚 **Documentación colaborativa**
+- 💡 **Innovación continua**
+- 🌍 **Adopción global**
+
+---
+
+<div align="center">
+
+**🎉 Gracias por contribuir al proyecto Backstage IDP**
+
+*Para más información, visita [backstage.io](https://backstage.io)*
+
+</div>
