@@ -34,5 +34,6 @@ spec:
               cpu: "500m"
               memory: "512Mi"
       volumes:
-          - name: postgresdb
-            emptyDir: {}
+        - name: postgresdb
+          persistentVolumeClaim:
+            claimName: postgres-storage-claim

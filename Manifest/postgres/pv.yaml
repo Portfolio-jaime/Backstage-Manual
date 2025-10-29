@@ -11,16 +11,6 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  # Elimina hostPath si usas emptyDir en el deployment
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-storage-claim
-  namespace: backstage-manual
-spec:
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 2G
+  hostPath:
+    path: /mnt/data
+    type: DirectoryOrCreate
