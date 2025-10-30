@@ -70,13 +70,20 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 # No copiamos packages/backend/node_modules porque el focus backend sólo generó node_modules raíz.
 # La resolución de módulos del backend (dist) ascenderá hasta /app/node_modules.
 COPY --from=prod-deps /app/packages/backend/package.json ./packages/backend/package.json
-COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
+# Copiamos el bundle generado por el build y lo extraemos para obtener dist/index.cjs.js
+COPY --from=builder /app/packages/backend/dist/bundle.tar.gz ./bundle.tar.gz
+RUN tar xzf bundle.tar.gz && rm bundle.tar.gz
+# El bundle incluye el dist del backend y el dist del app. Si se desea redundancia, se copia igualmente el dist del app.
 COPY --from=builder /app/packages/app/dist ./packages/app/dist
 COPY --from=builder /app/app-config.production.yaml ./app-config.production.yaml
 COPY --from=builder /app/catalog-info.yaml ./catalog-info.yaml
 COPY --from=builder /app/backstage.json ./backstage.json
+ # Añadimos el archivo base de configuración para evitar NotFoundError
+ COPY --from=builder /app/app-config.yaml ./app-config.yaml
 
 EXPOSE 7007
+ # Ajustamos ownership para permitir que el usuario "node" lea los artefactos extraídos
+ RUN chown -R node:node /app
 USER node
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "packages/backend/dist/index.cjs.js"]
