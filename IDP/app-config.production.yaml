@@ -1,13 +1,16 @@
 app:
-  # Producción sobre dominio interno
-  baseUrl: https://backstage.local
+  # Dominio interno (sin TLS por ahora). Cambiar a https cuando se añada cert-manager.
+  baseUrl: http://backstage.local
 
 backend:
-  # URL pública que coincide con el Ingress
-  baseUrl: https://backstage.local
-  # The listener can also be expressed as a single <host>:<port> string. In this case we bind to
-  # all interfaces, the most permissive setting. The right value depends on your specific deployment.
+  # Debe coincidir con el host del Ingress y esquema real servido.
+  baseUrl: http://backstage.local
+  # Listener en todas las interfaces
   listen: ':7007'
+  cors:
+    origin: http://backstage.local
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
 
   # config options: https://node-postgres.com/apis/client
   database:
@@ -26,10 +29,11 @@ backend:
 
 auth:
   providers:
-    guest: {}
     github:
-      clientId: ${GITHUB_CLIENT_ID}
-      clientSecret: ${GITHUB_CLIENT_SECRET}
+      production:
+        clientId: ${GITHUB_CLIENT_ID}
+        clientSecret: ${GITHUB_CLIENT_SECRET}
+    guest: {}
 
 catalog:
   # Overrides the default list locations from app-config.yaml as these contain example data.
