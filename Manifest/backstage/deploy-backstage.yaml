@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backstage
-          image: jaimehenao8126/backstage-custom:2a98956
+          image: jaimehenao8126/backstage-custom:60d30cd
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
