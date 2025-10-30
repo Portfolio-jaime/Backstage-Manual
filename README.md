@@ -190,7 +190,117 @@ Edita la sección `alertmanager.config.receivers` en `values.yaml` para añadir 
 - Definir SLOs y alertas de error rate y p95 latency.
 - Activar métricas de plugins personalizados.
 
-## 📝 Roadmap y TODOs
+## � Autenticación GitHub (OAuth + Integraciones)
+
+Esta sección explica cómo habilitar y migrar la autenticación GitHub desde un entorno local (`localhost`) hacia un dominio interno (`https://backstage.local`). Incluye también la diferencia entre **OAuth App** y **Personal Access Token (PAT)** usados por el catálogo y el scaffolder.
+
+### 🧩 Componentes Involucrados
+
+- `auth.providers.github` (OAuth) en `app-config.yaml` / `app-config.production.yaml`
+- Variables de entorno: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`
+- `integrations.github[].token` (PAT con scopes de lectura para catálogo y templates)
+- Ingress / DNS apuntando a `backstage.local`
+
+### 🛠️ Pasos Local (localhost)
+
+1. Crear OAuth App en GitHub: Settings > Developer settings > OAuth Apps > New OAuth App.
+2. Nombre: `Backstage Local`
+3. Homepage URL: `http://localhost:3000` (frontend de Backstage)
+4. Authorization callback URL: `http://localhost:7007/api/auth/github/handler/frame`
+5. Guardar y copiar `Client ID` y generar `Client Secret`.
+6. Añadirlos a tu entorno local (export o docker run):
+
+```bash
+export GITHUB_CLIENT_ID="<client-id>"
+export GITHUB_CLIENT_SECRET="<client-secret>"
+docker run --rm -p 7007:7007 \
+    -e GITHUB_CLIENT_ID -e GITHUB_CLIENT_SECRET \
+    backstage-local:dev
+```
+
+### 🚀 Migración a Dominio Interno (`https://backstage.local`)
+
+Cuando definas el Ingress y DNS para `backstage.local`:
+
+| Elemento | Valor Local | Valor Producción |
+|----------|-------------|------------------|
+| `app.baseUrl` | `http://localhost:3000` | `https://backstage.local` |
+| `backend.baseUrl` | `http://localhost:7007` | `https://backstage.local` |
+| Callback OAuth | `http://localhost:7007/api/auth/github/handler/frame` | `https://backstage.local/api/auth/github/handler/frame` |
+| Homepage OAuth | `http://localhost:3000` | `https://backstage.local` |
+
+Pasos:
+1. Crear NUEVA OAuth App (recomendado) llamada `Backstage` para producción.
+2. Usar la callback de producción exacta (HTTPS + dominio correcto).
+3. Actualizar `app-config.production.yaml` con los nuevos `baseUrl`.
+4. Actualizar Ingress host (`backstage.local`).
+5. Emitir/rotar `Client Secret` y actualizar `secret-backstage.yaml` (`stringData`).
+6. Rebuild + redeploy (`docker build` + push + ArgoCD sync).
+
+### 🧪 Verificación Rápida
+
+```bash
+# Ver que el backend expone el inicio OAuth
+curl -I https://backstage.local/api/auth/github/start  # Debe responder 302
+
+# Local (si sigues en dev)
+curl -I http://localhost:7007/api/auth/github/start
+```
+
+### 🎯 Scopes Recomendados
+
+Para la OAuth App de login: normalmente sin scopes especiales (GitHub devuelve email básico). Si necesitas datos privados de repos:
+
+- `read:user` (implícito)
+- `user:email`
+- Añadir `repo` SOLO si vas a listar repos privados en plugins.
+
+Para el PAT (`integrations.github.token`): mínimo `repo:read` si lees repos privados. Evita scopes de escritura a menos que el scaffolder necesite crear repos (`repo` + `workflow` si dispara GitHub Actions).
+
+### 🧪 Flujo de Login (Interno)
+
+1. Usuario abre Backstage y selecciona proveedor GitHub.
+2. Backend redirige a GitHub (`/api/auth/github/start`).
+3. GitHub valida `redirect_uri` exacto.
+4. Backend procesa el código y genera sesión.
+5. Frontend establece cookies / sesión y redirige a la app.
+
+### ⚠️ Errores Comunes
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| 404 `/api/auth/github/start` | ID proveedor incorrecto (`github-auth`) | Usar `id: 'github'` en `App.tsx` |
+| `redirect_uri mismatch` | Callback diferente a la registrada | Verificar HTTPS, dominio y ruta `/api/auth/github/handler/frame` |
+| `invalid_client` | Client ID/Secret erróneos | Regenerar secret y actualizar deployment / secret K8s |
+| Loop login | Cookies bloqueadas / CORS | Revisar `backend.cors.origin` y dominios permitidos |
+
+### 🔄 Cambio de Local a Producción sin Downtime
+
+Estrategia recomendada:
+1. Crear OAuth App producción y validar en ambiente staging (`backstage-staging.local`).
+2. Añadir ambas configuraciones (`development` + `production`) temporalmente si separas entornos.
+3. Activar Ingress nuevo y verificar health antes de switch DNS final.
+4. Rotar secret antiguo tras confirmación.
+
+### 🧰 Checklist Final Producción
+
+- [ ] DNS / Ingress resolviendo `https://backstage.local`
+- [ ] Certificado TLS válido (Let's Encrypt interno o corporativo)
+- [ ] `app-config.production.yaml` con baseUrl actualizado
+- [ ] Secret K8s contiene `GITHUB_CLIENT_ID` y `GITHUB_CLIENT_SECRET` reales
+- [ ] Imagen reconstruida post-cambio
+- [ ] ArgoCD sync OK y pods Healthy
+- [ ] Login GitHub 302 → GitHub → 302 → Backstage (sin errores)
+
+### 📌 Notas
+
+- Mantén separado OAuth (login) de PAT (catalogo) para poder rotar tokens sin afectar sesiones.
+- Usa `stringData` en secretos para facilitar cambios; Kubernetes los convierte a base64 automáticamente.
+- No reutilices la misma OAuth App para entornos radicalmente distintos (riesgo de fugas en callback y problemas de auditoría).
+
+Si deseas, puedo aplicar directamente los cambios de `app-config.production.yaml` para el dominio definitivo una vez confirmes que el Ingress está listo.
+
+## �📝 Roadmap y TODOs
 
 ### 🚀 Próximas Funcionalidades
 
@@ -230,7 +340,15 @@ flowchart TD
     H -->|❌ No| J[📞 Contactar Soporte]
 ```
 
-### 🔧 Comandos de Diagnóstico
+### � Nota de Consolidación ArgoCD
+Mantén una sola instalación de ArgoCD en el namespace `argocd` para evitar reconciliaciones duplicadas y drift.
+Diagnóstico rápido:
+```bash
+kubectl get deploy,svc,cm,secret -n default | grep -i argocd || true
+```
+Si aparecen recursos, sigue los pasos de limpieza en `Manifest/argocd/README.md` antes de aplicar nuevas Applications o App-of-Apps.
+
+### �🔧 Comandos de Diagnóstico
 
 ```bash
 # Ver estado general del cluster

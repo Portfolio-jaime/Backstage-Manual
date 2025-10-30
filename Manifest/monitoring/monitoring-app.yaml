@@ -7,13 +7,6 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    chart: kube-prometheus-stack
-    repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 65.0.0
-    helm:
-      valueFiles:
-        - $values/Manifest/monitoring/values.yaml
   sources:
     - chart: kube-prometheus-stack
       repoURL: https://prometheus-community.github.io/helm-charts
@@ -34,7 +27,8 @@ spec:
       allowEmpty: false
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true
+      # Removed ServerSideApply=true due to conflict when a previous sync used 'force'.
+      # Kubernetes disallows --force with server-side apply; keeping standard apply avoids repeated PreSync hook failures.
     retry:
       limit: 5
       backoff:

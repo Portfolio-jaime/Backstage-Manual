@@ -30,6 +30,7 @@ import {
   OAuthRequestDialog,
   SignInPage,
 } from '@backstage/core-components';
+import { githubAuthApiRef } from '@backstage/core-plugin-api';
 import { createApp } from '@backstage/app-defaults';
 import { AppRouter, FlatRoutes } from '@backstage/core-app-api';
 import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
@@ -58,7 +59,22 @@ const app = createApp({
     });
   },
   components: {
-    SignInPage: props => <SignInPage {...props} auto providers={['guest']} />,
+    // Configuramos proveedores de autenticación: GitHub OAuth y guest fallback
+    SignInPage: props => (
+      <SignInPage
+        {...props}
+        auto
+        providers={[
+          {
+            id: 'github',
+            title: 'GitHub',
+            message: 'Inicia sesión con tu cuenta GitHub',
+            apiRef: githubAuthApiRef,
+          },
+          'guest',
+        ]}
+      />
+    ),
   },
 });
 

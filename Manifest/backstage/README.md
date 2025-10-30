@@ -158,7 +158,7 @@ hpa:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: backstage-secrets
+  name: backstage-secret
   namespace: backstage-manual
 type: Opaque
 data:

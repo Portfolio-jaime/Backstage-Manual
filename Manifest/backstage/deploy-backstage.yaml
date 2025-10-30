@@ -24,10 +24,10 @@ spec:
             - secretRef:
                 name: postgres-secrets
             - secretRef:
-                name: backstage-secrets
+                name: backstage-secret
           env:
             - name: POSTGRES_HOST
-              value: "postgres"
+              value: "postgres" # Servicio Postgres dentro del namespace backstage-manual
             - name: POSTGRES_PORT
               value: "5432"
             - name: POSTGRES_DB
@@ -45,13 +45,23 @@ spec:
             - name: BACKEND_AUTH_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: backstage-secrets
+                  name: backstage-secret
                   key: BACKEND_AUTH_SECRET
             - name: BACKEND_AUTH_KEYS_0_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: backstage-secrets
+                  name: backstage-secret
                   key: BACKEND_AUTH_KEYS_0_SECRET
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backstage-secret
+                  key: GITHUB_CLIENT_ID
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backstage-secret
+                  key: GITHUB_CLIENT_SECRET
           resources:
             requests:
               cpu: "100m"

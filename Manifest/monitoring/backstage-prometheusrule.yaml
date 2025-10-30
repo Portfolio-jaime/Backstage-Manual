@@ -1,0 +1,43 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: backstage-rules
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: backstage.availability
+      rules:
+        - alert: BackstageDown
+          expr: up{namespace="backstage-manual",pod=~"backstage-.*"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Backstage no responde
+            description: El pod de Backstage dejó de reportar estado 'up'.
+        - alert: BackstageHighErrorRate
+          expr: rate(http_server_requests_errors_total{namespace="backstage-manual"}[5m]) > 0.1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Tasa alta de errores en Backstage
+            description: Más del 10% de las peticiones fallan en la ventana de 5m.
+        - alert: BackstageOauthFailures
+          expr: rate(http_server_requests_errors_total{namespace="backstage-manual",path=~"/api/auth/github/.*"}[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Fallos frecuentes OAuth GitHub
+            description: Errores en endpoints oauth superan 5% en 5 minutos.
+        - alert: BackstageHighLatencyP99
+          expr: histogram_quantile(0.99, sum by (le)(rate(http_server_request_duration_seconds_bucket{namespace="backstage-manual"}[5m]))) > 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Latencia p99 elevada
+            description: La latencia p99 de las peticiones supera 1s sostenido 5m.

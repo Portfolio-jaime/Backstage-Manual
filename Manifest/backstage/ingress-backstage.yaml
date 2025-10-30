@@ -5,6 +5,7 @@ metadata:
   namespace: backstage-manual
   annotations:
     # Solo la anotación de tracking, sin rewrite-target
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true" # habilitar cuando tengas TLS
 spec:
   rules:
     - host: backstage.local
@@ -17,3 +18,7 @@ spec:
                   name: backstage
                   port:
                     number: 80
+  # tls:
+  #   - hosts:
+  #       - backstage.local
+  #     secretName: backstage-tls

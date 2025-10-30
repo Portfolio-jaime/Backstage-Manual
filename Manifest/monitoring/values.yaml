@@ -19,11 +19,19 @@ prometheus:
               storage: 10Gi
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - prometheus.kind.local
 
 # Grafana
 grafana:
   enabled: true
-  adminPassword: "admin"
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
   resources:
     requests:
       cpu: 100m
@@ -40,6 +48,11 @@ grafana:
 # AlertManager
 alertmanager:
   enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - alertmanager.kind.local
   alertmanagerSpec:
     resources:
       requests:
