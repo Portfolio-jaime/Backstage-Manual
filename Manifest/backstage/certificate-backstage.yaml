@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: backstage-certificate
+  namespace: backstage-manual
+spec:
+  secretName: backstage-tls
+  dnsNames:
+    - backstage.local
+  issuerRef:
+    name: backstage-selfsigned
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  renewBefore: 168h   # 7 días antes de expirar empieza renovación

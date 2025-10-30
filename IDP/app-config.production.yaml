@@ -1,14 +1,14 @@
 app:
-  # Dominio interno (sin TLS por ahora). Cambiar a https cuando se añada cert-manager.
-  baseUrl: http://backstage.local
+  # Dominio interno servido por Ingress. Ahora migrado a HTTPS (asegúrate de provisionar certificado y habilitar tls: en el Ingress).
+  baseUrl: https://backstage.local
 
 backend:
-  # Debe coincidir con el host del Ingress y esquema real servido.
-  baseUrl: http://backstage.local
+  # Debe coincidir exactamente con el host + esquema (https) expuesto por el Ingress.
+  baseUrl: https://backstage.local
   # Listener en todas las interfaces
   listen: ':7007'
   cors:
-    origin: http://backstage.local
+    origin: https://backstage.local
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
 
@@ -30,9 +30,12 @@ backend:
 auth:
   providers:
     github:
+      # Para GitHub, la Authorization callback URL en la configuración del OAuth App debe ser:
+      # https://backstage.local/api/auth/github/handler/frame
       production:
         clientId: ${GITHUB_CLIENT_ID}
         clientSecret: ${GITHUB_CLIENT_SECRET}
+        redirectUri: https://backstage.local/api/auth/github/handler/frame
     guest: {}
 
 catalog:

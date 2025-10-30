@@ -4,21 +4,21 @@ metadata:
   name: backstage-ingress
   namespace: backstage-manual
   annotations:
-    # Solo la anotación de tracking, sin rewrite-target
-    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true" # habilitar cuando tengas TLS
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # Cuando el certificado esté listo (secret backstage-tls). Si usas otro Ingress Controller ajusta anotaciones.
 spec:
+  tls:
+    - hosts:
+        - backstage.local
+      secretName: backstage-tls
   rules:
     - host: backstage.local
       http:
         paths:
-            - path: /
-              pathType: Prefix
-              backend:
-                service:
-                  name: backstage
-                  port:
-                    number: 80
-  # tls:
-  #   - hosts:
-  #       - backstage.local
-  #     secretName: backstage-tls
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backstage
+                port:
+                  number: 80

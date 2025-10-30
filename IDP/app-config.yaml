@@ -1,19 +1,20 @@
 app:
   title: Backstage Portal
-  baseUrl: http://backstage.local
+  # Migrado a HTTPS para que coincida con la configuración del OAuth App en GitHub.
+  baseUrl: https://backstage.local
 
 organization:
   name: My Company
 
 backend:
   # Shared secret keys can be re-enabled when rotating a strong secret into BACKEND_AUTH_SECRET.
-  baseUrl: http://backstage.local
+  baseUrl: https://backstage.local
   listen:
     port: 7007
   csp:
     connect-src: ["'self'", 'http:', 'https:']
   cors:
-    origin: http://backstage.local
+    origin: https://backstage.local
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
   cache:
@@ -59,12 +60,16 @@ techdocs:
 auth:
   providers:
     github:
+      # Authorization callback URL configurada en GitHub debe ser:
+      # https://backstage.local/api/auth/github/handler/frame
       development:
         clientId: ${GITHUB_CLIENT_ID}
         clientSecret: ${GITHUB_CLIENT_SECRET}
+        redirectUri: https://backstage.local/api/auth/github/handler/frame
       production:
         clientId: ${GITHUB_CLIENT_ID}
         clientSecret: ${GITHUB_CLIENT_SECRET}
+        redirectUri: https://backstage.local/api/auth/github/handler/frame
     guest: {}
         # scopes por defecto suelen ser suficientes; añadir repo / workflow si se integran acciones
         # enterpriseInstanceUrl: https://ghe.example.com (si aplica)
