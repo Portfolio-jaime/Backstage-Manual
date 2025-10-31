@@ -147,21 +147,27 @@ flowchart LR
 | 📈 **Prometheus** | `http://prometheus.local` | 🟢 Activo | Métricas y alertas |
 | 🐘 **PostgreSQL** | `postgres.backstage.svc` | 🟢 Activo | Base de datos |
 
-## 🔧 Configuración y Personalización
+### 🔧 Configuración y Personalización
 
 ### ⚙️ Variables de Entorno Críticas
 
 ```yaml
-# Backstage Configuration
-BACKEND_AUTH_SECRET: "your-secret-key"
+# Backstage Configuration (uso moderno de auth.keys)
+BACKEND_AUTH_KEYS_0_SECRET: "<random-rotatable-64-byte-secret>"
 POSTGRES_HOST: "postgres.backstage.svc.cluster.local"
 POSTGRES_USER: "backstage"
 POSTGRES_PASSWORD: "secure-password"
+
+# GitHub OAuth (login)
+GITHUB_CLIENT_ID: "<oauth-client-id>"
+GITHUB_CLIENT_SECRET: "<oauth-client-secret>"
 
 # Monitoring
 GRAFANA_ADMIN_PASSWORD: "admin-password"
 PROMETHEUS_RETENTION: "30d"
 ```
+
+> Nota: Se eliminó el uso de `BACKEND_AUTH_SECRET` (deprecated). Ahora se utiliza `backend.auth.keys` con una lista de llaves que pueden rotarse sin invalidar inmediatamente sesiones previas (multi‑key support si se agregan más entradas). Rotar usando script custom (ver Scripts/rotate).
 
 ### 🔒 Seguridad Implementada
 
@@ -185,6 +191,90 @@ PROMETHEUS_RETENTION: "30d"
 Edita la sección `alertmanager.config.receivers` en `values.yaml` para añadir integraciones (email, Slack, PagerDuty). Después ejecuta `argocd app sync kube-prometheus-stack` o espera al auto-sync.
 
 #### Recomendaciones siguientes
+### 🛠️ Monitoreo: Fix de CRDs Prometheus (ArgoCD)
+
+Durante la instalación del chart `kube-prometheus-stack` algunos **CustomResourceDefinitions (CRDs)** grandes (ej: `prometheuses.monitoring.coreos.com`, `thanosrulers.monitoring.coreos.com`, etc.) producían errores de sincronización en ArgoCD:
+
+```
+metadata.annotations: Too long: may not be more than 262144 bytes
+```
+
+**Causa raíz**:
+- ArgoCD intentaba aplicar un patch *client-side apply* que genera / actualiza la annotation `kubectl.kubernetes.io/last-applied-configuration` con el manifiesto completo embebido.
+- En CRDs grandes ese valor excede el límite máximo de tamaño para annotations (256 KiB).
+
+**Intentos previos (fallidos / subóptimos)**:
+- Eliminar manualmente annotations grandes (solo resuelve temporalmente; futuras reconciliaciones vuelven a intentar escribir el blob).
+- Usar `Replace=true` (forzaba reemplazos completos del recurso, más agresivo y con riesgo de perder campos agregados por otros controladores).
+
+**Solución implementada**:
+1. Añadir `ignoreDifferences` en la ArgoCD Application apuntando a los seis CRDs problemáticos para ignorar diffs en `/metadata/annotations`.
+2. Cambiar estrategia a `ServerSideApply=true` (usa *managedFields* en lugar de la annotation gigante).
+
+**Razones para preferir ServerSideApply sobre Replace**:
+- Evita el blob en `last-applied-configuration` → no supera límites.
+- Conserva ownership granular de campos (managedFields) facilitando coexistencia con otros operadores.
+- Reduce riesgo de "pisar" cambios externos.
+- Mantiene actualizaciones incrementales y diffs más pequeños.
+
+**Verificación**:
+```bash
+argocd app get kube-prometheus-stack | grep -E 'SyncFailed|Failed' || echo "Sin fallos"
+```
+
+**Checklist final aplicado**:
+- [x] `ignoreDifferences` para `/metadata/annotations` en CRDs grandes.
+- [x] `ServerSideApply=true` en `syncOptions`.
+- [x] Eliminado `Replace=true` (ya no necesario).
+
+> Si en el futuro aparece un nuevo CRD con el mismo síntoma, agregar entrada adicional a `ignoreDifferences` y verificar que SSA esté activo.
+
+### 🔐 GitHub OAuth: Inyección de Credenciales en Kubernetes
+
+Las credenciales OAuth (Client ID / Client Secret) **no** se versionan: el manifest `secret-backstage.yaml` mantiene placeholders. Para inyectarlas y reiniciar Backstage se utiliza el script:
+
+`Scripts/update_github_oauth.sh`
+
+**Uso básico**:
+```bash
+./Scripts/update_github_oauth.sh \
+    -n backstage-manual \
+    -c <GITHUB_CLIENT_ID> \
+    -s <GITHUB_CLIENT_SECRET>
+```
+
+**Con rotación simultánea del auth key**:
+```bash
+./Scripts/update_github_oauth.sh \
+    -n backstage-manual \
+    -c <GITHUB_CLIENT_ID> \
+    -s <GITHUB_CLIENT_SECRET> \
+    --rotate-auth
+```
+
+El script:
+- Crea el secreto si no existe (añadiendo una nueva key para `BACKEND_AUTH_KEYS_0_SECRET`).
+- Parchea únicamente las claves indicadas (sin exponer valores en la salida estándar).
+- Reinicia el Deployment y espera readiness.
+- Muestra logs donde se inicializa el provider GitHub.
+
+**Validaciones post inyección**:
+```bash
+curl -I https://backstage.local/api/auth/github/start   # Debe responder 302
+kubectl -n backstage-manual logs -l app=backstage | grep -i 'Configuring auth provider: github' | tail
+```
+
+**Errores comunes**:
+| Error | Causa | Solución |
+|-------|-------|----------|
+| 404 /api/auth/github/start | Provider ID incorrecto en frontend | Asegurar uso de `github` en el proveedor de `App.tsx` |
+| redirect_uri mismatch | Callback distinta en OAuth App | Igualar exactamente `https://backstage.local/api/auth/github/handler/frame` |
+| invalid_client | Client ID o Secret erróneos | Regenerar y re‑parchear secreto |
+| Loop de login | Dominio/CORS desalineado | Revisar `backend.cors.origin` y `app.baseUrl` |
+
+**Rotación periódica recomendada**: usar `--rotate-auth` cada cierto tiempo (ej. mensual) y mantener versión previa (añadiendo llaves adicionales) si se desea evitar invalidar sesiones activas.
+
+> Separar OAuth (login de usuarios) de PATs usados por el scaffolder/catalogo. PATs nunca deben exponerse en repositorios públicos.
 - Firmar la imagen con `cosign` y habilitar verificación en admisión.
 - Añadir dashboards específicos de Backstage (latencia API, duración scaffolder).
 - Definir SLOs y alertas de error rate y p95 latency.
