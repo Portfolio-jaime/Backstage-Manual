@@ -7,6 +7,39 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
+  ignoreDifferences:
+    # Large CRDs whose rendered manifests exceed the annotation size limit when ArgoCD attempts strategic merge apply.
+    # We ignore metadata.annotations diffs to prevent repeated SyncFailed errors.
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: prometheuses.monitoring.coreos.com
+      jsonPointers:
+        - /metadata/annotations
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: scrapeconfigs.monitoring.coreos.com
+      jsonPointers:
+        - /metadata/annotations
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: alertmanagers.monitoring.coreos.com
+      jsonPointers:
+        - /metadata/annotations
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: alertmanagerconfigs.monitoring.coreos.com
+      jsonPointers:
+        - /metadata/annotations
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: prometheusagents.monitoring.coreos.com
+      jsonPointers:
+        - /metadata/annotations
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: thanosrulers.monitoring.coreos.com
+      jsonPointers:
+        - /metadata/annotations
   sources:
     - chart: kube-prometheus-stack
       repoURL: https://prometheus-community.github.io/helm-charts
@@ -27,8 +60,11 @@ spec:
       allowEmpty: false
     syncOptions:
       - CreateNamespace=true
-      # Removed ServerSideApply=true due to conflict when a previous sync used 'force'.
-      # Kubernetes disallows --force with server-side apply; keeping standard apply avoids repeated PreSync hook failures.
+      # Use server-side apply so that Kubernetes stores field ownership in managedFields
+      # instead of the kubectl.kubernetes.io/last-applied-configuration annotation.
+      # This prevents oversized annotation errors on large CRDs (Prometheus ecosystem CRDs).
+      - ServerSideApply=true
+      # (Removed Replace=true; server-side apply already avoids client-side last-applied annotation bloat.)
     retry:
       limit: 5
       backoff:
