@@ -42,11 +42,6 @@ spec:
                 secretKeyRef:
                   name: postgres-secrets
                   key: POSTGRES_PASSWORD
-            - name: BACKEND_AUTH_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: backstage-secret
-                  key: BACKEND_AUTH_SECRET
             - name: BACKEND_AUTH_KEYS_0_SECRET
               valueFrom:
                 secretKeyRef:

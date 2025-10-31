@@ -7,6 +7,18 @@
  */
 
 import { createBackend } from '@backstage/backend-defaults';
+import fs from 'fs';
+import path from 'path';
+
+// Carga condicional de .env en desarrollo local (no producción dentro de contenedor)
+if (process.env.NODE_ENV !== 'production') {
+  const envPath = path.resolve(__dirname, '../../../.env');
+  if (fs.existsSync(envPath)) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('dotenv').config({ path: envPath });
+    // console.log(`Loaded .env from ${envPath}`); // debug opcional
+  }
+}
 
 const backend = createBackend();
 

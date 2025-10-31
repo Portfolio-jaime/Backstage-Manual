@@ -11,6 +11,9 @@ backend:
     origin: https://backstage.local
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
+  auth:
+    keys:
+      - secret: ${BACKEND_AUTH_KEYS_0_SECRET}
 
   # config options: https://node-postgres.com/apis/client
   database:
