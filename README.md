@@ -422,6 +422,38 @@ kubectl -n backstage-manual logs deployment/backstage | grep -i 'Configuring aut
 
 - Mantén separado OAuth (login) de PAT (catalogo) para poder rotar tokens sin afectar sesiones.
 - Usa `stringData` en secretos para facilitar cambios; Kubernetes los convierte a base64 automáticamente.
+
+### 👥 Organización: Usuario y Grupo DevX
+
+Se añadieron entidades de ejemplo en `IDP/examples/org.yaml` para habilitar la resolución de identidad vía GitHub:
+
+```yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+    name: devx
+    description: Developer Experience (DevX) core group
+spec:
+    type: team
+    profile:
+        displayName: DevX Team
+    children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+    name: jaimehenao8126
+    description: Jaime Henao
+spec:
+    profile:
+        displayName: Jaime Henao
+        email: jaime.henao@example.com
+    memberOf:
+        - devx
+```
+
+Con el resolver `usernameMatchingUserEntityName` en `auth.providers.github.production.signIn.resolvers`, el login GitHub del usuario `jaimehenao8126` se mapeará al `User:default/jaimehenao8126` y al grupo `devx`. Ajusta el email real si deseas habilitar resolvers adicionales por email.
 - No reutilices la misma OAuth App para entornos radicalmente distintos (riesgo de fugas en callback y problemas de auditoría).
 
 Si deseas, puedo aplicar directamente los cambios de `app-config.production.yaml` para el dominio definitivo una vez confirmes que el Ingress está listo.

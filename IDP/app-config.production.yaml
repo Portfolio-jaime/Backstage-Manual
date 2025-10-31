@@ -39,6 +39,13 @@ auth:
         clientId: ${GITHUB_CLIENT_ID}
         clientSecret: ${GITHUB_CLIENT_SECRET}
         redirectUri: https://backstage.local/api/auth/github/handler/frame
+        # Configuración de sign-in: mapea el usuario GitHub a identidad Backstage
+        signIn:
+          resolvers:
+            # Usa el username GitHub para buscar un User:<username> en el catálogo, o crea provisional identidad guest
+            - resolver: usernameMatchingUserEntityName
+            # Alternativa: vincular por email (requiere que email público coincida con spec.profile.email)
+            # - resolver: emailMatchingUserEntityProfileEmail
     guest: {}
 
 catalog:
