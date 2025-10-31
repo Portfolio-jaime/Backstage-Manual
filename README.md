@@ -272,6 +272,8 @@ kubectl -n backstage-manual logs -l app=backstage | grep -i 'Configuring auth pr
 | invalid_client | Client ID o Secret erróneos | Regenerar y re‑parchear secreto |
 | Loop de login | Dominio/CORS desalineado | Revisar `backend.cors.origin` y `app.baseUrl` |
 
+> Nota sobre `?env=production`: la versión actual de los paquetes de autenticación requiere especificar el entorno (`production`) porque la configuración del proveedor GitHub se declara bajo `auth.providers.github.production`. El flujo normal de la UI ya añade `?env=production` automáticamente. Los intentos de aplanar la configuración (mover `clientId` directamente bajo `github:`) generan errores de esquema en esta versión. Para eliminar el parámetro en el futuro será necesario actualizar Backstage a una versión que soporte configuración plana o crear un wrapper que llame internamente al endpoint con el parámetro.
+
 **Rotación periódica recomendada**: usar `--rotate-auth` cada cierto tiempo (ej. mensual) y mantener versión previa (añadiendo llaves adicionales) si se desea evitar invalidar sesiones activas.
 
 > Separar OAuth (login de usuarios) de PATs usados por el scaffolder/catalogo. PATs nunca deben exponerse en repositorios públicos.
