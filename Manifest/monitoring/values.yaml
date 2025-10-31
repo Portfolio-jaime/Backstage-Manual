@@ -23,7 +23,24 @@ prometheus:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - prometheus.kind.local
+      - prometheus.local
+    tls:
+      - hosts:
+          - prometheus.local
+        secretName: prometheus-tls
+    annotations:
+      cert-manager.io/cluster-issuer: selfsigned-issuer
+      nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+      nginx.ingress.kubernetes.io/limit-rps: '20'
+      nginx.ingress.kubernetes.io/limit-connections: '50'
+      nginx.ingress.kubernetes.io/proxy-buffer-size: '16k'
+      nginx.ingress.kubernetes.io/proxy-body-size: '10m'
+      nginx.ingress.kubernetes.io/server-snippet: |
+        add_header X-Frame-Options DENY;
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy no-referrer;
+        add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none';";
+        if ($request_method !~ ^(GET|HEAD|POST)$ ) { return 405; }
 
 # Grafana
 grafana:
@@ -43,7 +60,23 @@ grafana:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - grafana.kind.local
+      - grafana.local
+    tls:
+      - hosts:
+          - grafana.local
+        secretName: grafana-tls
+    annotations:
+      cert-manager.io/cluster-issuer: selfsigned-issuer
+      nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+      nginx.ingress.kubernetes.io/limit-rps: '20'
+      nginx.ingress.kubernetes.io/limit-connections: '50'
+      nginx.ingress.kubernetes.io/proxy-body-size: '10m'
+      nginx.ingress.kubernetes.io/server-snippet: |
+        add_header X-Frame-Options DENY;
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy no-referrer;
+        add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none';";
+        if ($request_method !~ ^(GET|HEAD|POST)$ ) { return 405; }
 
 # AlertManager
 alertmanager:
@@ -52,7 +85,23 @@ alertmanager:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - alertmanager.kind.local
+      - alertmanager.local
+    tls:
+      - hosts:
+          - alertmanager.local
+        secretName: alertmanager-tls
+    annotations:
+      cert-manager.io/cluster-issuer: selfsigned-issuer
+      nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+      nginx.ingress.kubernetes.io/limit-rps: '10'
+      nginx.ingress.kubernetes.io/limit-connections: '30'
+      nginx.ingress.kubernetes.io/proxy-body-size: '5m'
+      nginx.ingress.kubernetes.io/server-snippet: |
+        add_header X-Frame-Options DENY;
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy no-referrer;
+        add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none';";
+        if ($request_method !~ ^(GET|HEAD|POST)$ ) { return 405; }
   alertmanagerSpec:
     resources:
       requests:
