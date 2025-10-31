@@ -19,4 +19,11 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - PruneLast=true
-      - Replace=true
+      - ServerSideApply=true
+    ignoreDifferences:
+      - group: ""
+        kind: Secret
+        name: backstage-secret
+        namespace: backstage-manual
+        jsonPointers:
+          - /data

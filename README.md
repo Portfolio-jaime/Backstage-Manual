@@ -384,7 +384,41 @@ Estrategia recomendada:
 - [ ] ArgoCD sync OK y pods Healthy
 - [ ] Login GitHub 302 → GitHub → 302 → Backstage (sin errores)
 
-### 📌 Notas
+### �️ Troubleshooting GitHub OAuth
+
+| Síntoma | Causa Probable | Cómo Verificar | Solución |
+|---------|----------------|----------------|----------|
+| `client_id=__INJECT_AT_DEPLOY_TIME__` en la cabecera Location | Secret no parcheado con credenciales reales | `kubectl get secret backstage-secret -o jsonpath='{.data.GITHUB_CLIENT_ID}' | base64 -d` | Parchear secret con claves reales y reiniciar deployment |
+| `invalid_client` tras redirigir a GitHub | Client ID / Secret incorrectos o mal pegados | Revisar OAuth App y secret | Regenerar secret en GitHub, volver a parchear y reiniciar |
+| `redirect_uri mismatch` | Callback en OAuth App no coincide EXACTAMENTE | Ver Location previo y config de OAuth App | Ajustar callback a `https://backstage.local/api/auth/github/handler/frame` |
+| 400 sin parámetro `env` | Configuración multi‑entorno requiere `?env=production` | `curl -I /api/auth/github/start` vs `...start?env=production` | Usar `?env=production` (UI lo añade) o actualizar Backstage para config plana |
+| Botón GitHub no aparece / 404 start | ID del provider en frontend no es `github` | Revisar `App.tsx` provider id | Usar `id: 'github'` |
+| Loop después de autorizar | Cookies bloqueadas / CORS / `baseUrl` inconsistentes | Revisar consola navegador y vars `app.baseUrl`, `backend.baseUrl`, CORS | Alinear dominios y habilitar HTTPS correcto |
+| Error interno al iniciar provider | Falta variable env / secret vacío | Logs backend (`kubectl logs`) | Parchear secret y reiniciar |
+| Placeholder adicionales en secret | Patch previo creó claves basura | `kubectl get secret -o yaml` | Re‑aplicar secret limpio (ver ejemplo de recreación) |
+
+Ejemplo de parche correcto de secret:
+```bash
+kubectl -n backstage-manual patch secret backstage-secret --type=merge \
+    -p '{"stringData":{"GITHUB_CLIENT_ID":"<CLIENT_ID>","GITHUB_CLIENT_SECRET":"<CLIENT_SECRET>"}}'
+kubectl -n backstage-manual rollout restart deployment/backstage
+```
+
+Recrear completamente (limpieza):
+```bash
+kubectl -n backstage-manual get secret backstage-secret -o json \
+    | jq '.data = {} | .stringData = {"BACKEND_AUTH_KEYS_0_SECRET":"'"$(openssl rand -hex 32)"'","GITHUB_CLIENT_ID":"<CLIENT_ID>","GITHUB_CLIENT_SECRET":"<CLIENT_SECRET>","GITHUB_TOKEN":"__DO_NOT_COMMIT_PAT__"} | del(.metadata.uid,.metadata.resourceVersion,.metadata.creationTimestamp,.metadata.managedFields)' \
+    | kubectl apply -f -
+kubectl -n backstage-manual rollout restart deployment/backstage
+```
+
+Verificación rápida post‑parche:
+```bash
+curl -I "https://backstage.local/api/auth/github/start?env=production" | grep -i location
+kubectl -n backstage-manual logs deployment/backstage | grep -i 'Configuring auth provider: github' | tail
+```
+
+### �📌 Notas
 
 - Mantén separado OAuth (login) de PAT (catalogo) para poder rotar tokens sin afectar sesiones.
 - Usa `stringData` en secretos para facilitar cambios; Kubernetes los convierte a base64 automáticamente.
