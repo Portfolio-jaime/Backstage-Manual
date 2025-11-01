@@ -20,10 +20,10 @@ spec:
       - CreateNamespace=true
       - PruneLast=true
       - ServerSideApply=true
-    ignoreDifferences:
-      - group: ""
-        kind: Secret
-        name: backstage-secret
-        namespace: backstage-manual
-        jsonPointers:
-          - /data
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: backstage-secret
+      namespace: backstage-manual
+      jsonPointers:
+        - /data
