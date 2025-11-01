@@ -14,7 +14,6 @@ backend:
   auth:
     keys:
       - secret: ${BACKEND_AUTH_KEYS_0_SECRET}
-
   # config options: https://node-postgres.com/apis/client
   database:
     client: pg
@@ -46,6 +45,14 @@ auth:
             - resolver: usernameMatchingUserEntityName
             # Alternativa: vincular por email (requiere que email público coincida con spec.profile.email)
             # - resolver: emailMatchingUserEntityProfileEmail
+      # Proveedor para peticiones que llegan con env=development (evita 404/401 en /api/auth/github/*?env=development)
+      development:
+        clientId: ${GITHUB_CLIENT_ID}
+        clientSecret: ${GITHUB_CLIENT_SECRET}
+        redirectUri: https://backstage.local/api/auth/github/handler/frame
+        signIn:
+          resolvers:
+            - resolver: usernameMatchingUserEntityName
     guest: {}
 
 catalog:
