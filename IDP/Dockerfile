@@ -39,6 +39,27 @@ RUN yarn install --immutable --mode=skip-build || yarn install --immutable || tr
 RUN yarn build:all || yarn build
 
 ###############################
+# 2.b Normaliza ruta de ejemplos
+###############################
+# En algunos workflows el contexto de build es la carpeta IDP/ (por lo que los ejemplos terminan en /app/examples)
+# y en otros es el repo raíz (por lo que quedan en /app/IDP/examples). Para evitar COPY condicional (no soportado),
+# generamos un stage intermedio que siempre deja los archivos en /normalized/examples.
+FROM builder AS examples-normalized
+WORKDIR /app
+RUN set -e; \
+    if [ -d /app/examples ] && [ -f /app/examples/org.yaml ]; then \
+        echo "[INFO] Usando ejemplos desde /app/examples"; \
+        mkdir -p /normalized && cp -r /app/examples /normalized/examples; \
+    elif [ -d /app/IDP/examples ] && [ -f /app/IDP/examples/org.yaml ]; then \
+        echo "[INFO] Usando ejemplos desde /app/IDP/examples"; \
+        mkdir -p /normalized && cp -r /app/IDP/examples /normalized/examples; \
+    else \
+        echo "[WARN] No se encontraron ejemplos en /app/examples ni /app/IDP/examples"; \
+        mkdir -p /normalized/examples; \
+    fi; \
+    ls -R /normalized/examples || true
+
+###############################
 # 3. Prod deps (solo backend runtime)
 ###############################
 FROM node:${NODE_VERSION} AS prod-deps
@@ -83,9 +104,8 @@ COPY --from=builder /app/app-config.production.yaml ./app-config.production.yaml
 COPY --from=builder /app/app-config.yaml ./app-config.yaml
 COPY --from=builder /app/catalog-info.yaml ./catalog-info.yaml
 COPY --from=builder /app/backstage.json ./backstage.json
-## Catálogo de ejemplos (usuarios, grupos, templates): el contexto de build es la carpeta IDP/, por lo tanto los archivos se ubican en /app/examples dentro del stage builder
-## (antes se usó /app/IDP/examples causando error porque el contexto ya está en /app y no anidado)
-COPY --from=builder /app/examples ./examples
+## Catálogo de ejemplos (usuarios, grupos, templates) normalizado; siempre disponible en /normalized/examples
+COPY --from=examples-normalized /normalized/examples ./examples
 
 EXPOSE 7007
  # Ajustamos ownership para permitir que el usuario "node" lea los artefactos extraídos
