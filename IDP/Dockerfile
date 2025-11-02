@@ -83,8 +83,9 @@ COPY --from=builder /app/app-config.production.yaml ./app-config.production.yaml
 COPY --from=builder /app/app-config.yaml ./app-config.yaml
 COPY --from=builder /app/catalog-info.yaml ./catalog-info.yaml
 COPY --from=builder /app/backstage.json ./backstage.json
-## Catálogo de ejemplos (usuarios, grupos, templates): se requería para que las rutas ./examples/*.yaml del app-config existan en runtime
-COPY --from=builder /app/IDP/examples ./examples
+## Catálogo de ejemplos (usuarios, grupos, templates): el contexto de build es la carpeta IDP/, por lo tanto los archivos se ubican en /app/examples dentro del stage builder
+## (antes se usó /app/IDP/examples causando error porque el contexto ya está en /app y no anidado)
+COPY --from=builder /app/examples ./examples
 
 EXPOSE 7007
  # Ajustamos ownership para permitir que el usuario "node" lea los artefactos extraídos
