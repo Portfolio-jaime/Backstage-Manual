@@ -44,7 +44,7 @@ auth:
             # Usa el username GitHub para buscar un User:<username> en el catálogo, o crea provisional identidad guest
             - resolver: usernameMatchingUserEntityName
             # Alternativa: vincular por email (requiere que email público coincida con spec.profile.email)
-            # - resolver: emailMatchingUserEntityProfileEmail
+            - resolver: emailMatchingUserEntityProfileEmail
       # Proveedor para peticiones que llegan con env=development (evita 404/401 en /api/auth/github/*?env=development)
       development:
         clientId: ${GITHUB_CLIENT_ID}
@@ -53,6 +53,7 @@ auth:
         signIn:
           resolvers:
             - resolver: usernameMatchingUserEntityName
+            - resolver: emailMatchingUserEntityProfileEmail
     guest: {}
 
 catalog:
