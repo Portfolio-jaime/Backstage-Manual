@@ -12,7 +12,8 @@ backend:
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
   auth:
-    keys:
+    # 'keys' está deprecado; usar 'secrets' conforme a nuevas versiones de backend-defaults/backend-common.
+    secrets:
       - secret: ${BACKEND_AUTH_KEYS_0_SECRET}
   # config options: https://node-postgres.com/apis/client
   database:
@@ -32,21 +33,8 @@ backend:
 auth:
   providers:
     github:
-      # Para GitHub, la Authorization callback URL en la configuración del OAuth App debe ser:
-      # https://backstage.local/api/auth/github/handler/frame
+      # Sólo proveedor 'production' para evitar peticiones refresh con env=development.
       production:
-        clientId: ${GITHUB_CLIENT_ID}
-        clientSecret: ${GITHUB_CLIENT_SECRET}
-        redirectUri: https://backstage.local/api/auth/github/handler/frame
-        # Configuración de sign-in: mapea el usuario GitHub a identidad Backstage
-        signIn:
-          resolvers:
-            # Usa el username GitHub para buscar un User:<username> en el catálogo, o crea provisional identidad guest
-            - resolver: usernameMatchingUserEntityName
-            # Alternativa: vincular por email (requiere que email público coincida con spec.profile.email)
-            - resolver: emailMatchingUserEntityProfileEmail
-      # Proveedor para peticiones que llegan con env=development (evita 404/401 en /api/auth/github/*?env=development)
-      development:
         clientId: ${GITHUB_CLIENT_ID}
         clientSecret: ${GITHUB_CLIENT_SECRET}
         redirectUri: https://backstage.local/api/auth/github/handler/frame

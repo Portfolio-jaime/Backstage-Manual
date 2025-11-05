@@ -97,7 +97,9 @@ RUN tar xzf bundle.tar.gz || echo "[WARN] No se pudo extraer bundle.tar.gz (pued
 # Copia directa del dist del backend (garantiza presencia de index.cjs.js independientemente del contenido del bundle)
 COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
 # Verificación temprana: fallar si el archivo principal no existe
-RUN test -f packages/backend/dist/index.cjs.js || (echo "[ERROR] Backend dist/index.cjs.js no encontrado tras build" && ls -R packages/backend/dist || exit 1)
+RUN test -f packages/backend/dist/index.cjs.js \
+    || test -f packages/backend/dist/index.cjs \
+    || (echo "[ERROR] Backend dist entry (index.cjs.js|index.cjs) no encontrado tras build" && ls -R packages/backend/dist && exit 1)
 # El bundle (si existió) puede haber traído otros assets; mantenemos dist explícito.
 COPY --from=builder /app/packages/app/dist ./packages/app/dist
 COPY --from=builder /app/app-config.production.yaml ./app-config.production.yaml
